@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+
+helmCharts:
+- name: external-secrets
+  version: v0.9.10
+  repo: https://charts.external-secrets.io
+  namespace: external-secrets
+  releaseName: external-secrets
+  createNamespace: true
+  valuesInline:
+    extendedMetricLabels: true
+    serviceMonitor:
+      enabled: true
+    certManager:
+      enabled: true
+      cert:
+        issuerRef:
+          name: letsencrypt-prod
+          kind: ClusterIssuer
+          group: cert-manager.io
