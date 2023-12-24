@@ -1,0 +1,1 @@
+Decrypt the secret.yaml file using AGE and apply it to the cluster
