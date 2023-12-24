@@ -33,4 +33,3 @@ override.tf.json
 .terraformrc
 terraform.rc
 secrets/age-key.txt
-k8s/1password-connect/1password-credentials.json
