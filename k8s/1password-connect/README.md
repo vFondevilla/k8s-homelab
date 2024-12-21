@@ -1,16 +1,7 @@
-For decryption, first export from 1password the age key:
+Deploy the application then create the 1password connect server in 1password:
+
 ```
-export SOPS_AGE_RECIPIENTS=$(<public-age-keys.txt)
-export SOPS_AGE_KEY_FILE=$(pwd)/secrets/age-key.txt
-sops --decrypt --input-type json --output-type json --in-place 1password-credentials.json
+op connect server create kubernetes --vaults "Lab"
+kubectl create secret generic op-credentials -n 1p --from-literal=1password-credentials.json="$(cat 1password-credentials.json | base64)"
 ```
 
-Then install the helm chart
-```
-helm install connect 1password/connect --set-file connect.credentials=1password-credentials.json
-```
-
-Then encrypt again
-```
-sops --encrypt --age ${SOPS_AGE_RECIPIENTS} --in-place k8s/1password-connect/1password-credentials.json
-```
