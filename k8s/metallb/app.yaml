@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: metallb
+  namespace: argocd 
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+  project: default
+  sources:
+  - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
+    path: k8s/metallb/
+    targetRevision: HEAD
+  syncPolicy:
+    # automated: {}
+    syncOptions:
+    - CreateNamespace=true
