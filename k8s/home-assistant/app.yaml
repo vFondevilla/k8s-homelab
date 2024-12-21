@@ -14,9 +14,10 @@ spec:
     chart: home-assistant
     helm:
       valueFiles:
-      - values.yaml
+      - $values/values.yaml
   - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
     path: k8s/home-assistant/
+    ref: values
     targetRevision: HEAD
   syncPolicy:
     # automated: {}
