@@ -12,7 +12,7 @@ spec:
   - repoURL: https://k8s-at-home.com/charts/
     targetRevision: 13.4.2
     chart: home-assistant
-    valuesFiles:
+    valueFiles:
     - values.yaml
   - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
     path: k8s/home-assistant/
