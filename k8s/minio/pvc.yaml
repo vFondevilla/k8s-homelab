@@ -1,0 +1,35 @@
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  namespace: minio
+  name: minio-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Ti
+  storageClassName: manual
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: minio-data
+spec:
+  capacity:
+    storage: 1Ti
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Recycle
+  storageClassName: manual
+  mountOptions:
+    - hard
+    - nfsvers=4.1
+  nfs:
+    path: /volume2/docker/minio
+    server: 10.1.0.3
+  claimRef:
+    namespace: minio
+    name: minio-data
