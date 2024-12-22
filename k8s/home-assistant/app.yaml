@@ -20,7 +20,9 @@ spec:
     ref: values
     targetRevision: HEAD
   - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
-    path: k8s/home-assistant
+    path: k8s/home-assistant/
+    directory:
+      recurse: true
     targetRevision: HEAD
   syncPolicy:
     # automated: {}
