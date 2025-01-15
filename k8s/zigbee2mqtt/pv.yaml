@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: zigbee2mqtt
+spec:
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  nfs:
+    server: nas01.vfondevilla.com
+    path: "/volume3/k8s-static-pv/zigbee2mqtt"
+  storageClassName: manual
