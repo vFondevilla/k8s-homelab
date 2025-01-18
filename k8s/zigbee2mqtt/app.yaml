@@ -17,7 +17,7 @@ spec:
         # customLabels:
         #   pod-security.kubernetes.io/enforce: privileged
         image:
-          tag: 2.0.0
+          tag: 1.42.0
         statefulset:
           storage:
             enabled: true
