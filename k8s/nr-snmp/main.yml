@@ -1,0 +1,101 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: snmp-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  nfs:
+    server: nas01.vfondevilla.com
+    path: "/volume3/k8s-static-pv/snmp"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: snmp-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: manual
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ktranslate-nas01
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ktranslate
+  template:
+    metadata:
+      labels:
+        app: ktranslate
+    spec:
+      restartPolicy: Always
+      initContainers:
+        - name: fix-permissions
+          image: busybox
+          command: ["sh", "-c", "chmod -R 777 /mnt"]
+          volumeMounts:
+            - name: snmp-storage
+              mountPath: /mnt
+      containers:
+        - name: ktranslate
+          image: kentik/ktranslate:v2
+          imagePullPolicy: Always
+          args:
+            - "-snmp"
+            - "/mnt/snmp-base.yaml"
+            - "-nr_account_id=4521439"
+            - "-metrics=jchf"
+            - "-tee_logs=true"
+            - "-service_name=nas01"
+            - "-nr_region=EU"
+            - "-snmp_discovery_on_start=true"
+            - "-snmp_discovery_min=180"
+            - "nr1.snmp"
+          env:
+            - name: NEW_RELIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: newrelic-snmp-secret
+                  key: api-token
+          ports:
+            - name: snmp
+              containerPort: 1620
+              protocol: UDP
+          volumeMounts:
+            - name: snmp-storage
+              mountPath: /mnt/
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+      volumes:
+        - name: snmp-storage
+          persistentVolumeClaim:
+            claimName: snmp-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ktranslate-nas01
+spec:
+  selector:
+    app: ktranslate
+  ports:
+    - name: snmp
+      protocol: UDP
+      port: 162
+      targetPort: 1620
+  type: ClusterIP

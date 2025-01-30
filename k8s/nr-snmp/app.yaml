@@ -1,0 +1,16 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nr-snmp
+  namespace: argocd
+spec:
+  project: default 
+  source:
+    repoURL: 'git@github.com:vFondevilla/k8s.git'
+    path: nr-snmp
+    targetRevision: HEAD
+  destination:
+    server: 'https://kubernetes.default.svc'
+  syncPolicy:
+    automated:
+      selfHeal: true
