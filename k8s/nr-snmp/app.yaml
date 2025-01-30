@@ -6,8 +6,8 @@ metadata:
 spec:
   project: default 
   source:
-    repoURL: 'git@github.com:vFondevilla/k8s.git'
-    path: nr-snmp
+    repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
+    path: k8s/nr-snmp
     targetRevision: HEAD
   destination:
     server: 'https://kubernetes.default.svc'
