@@ -18,7 +18,7 @@ spec:
           externalTrafficPolicy: ""
         persistence:
           enabled: true
-          storageClass: nfs-synology
+          storageClass: manual
         nodeSelector:
           feature.node.kubernetes.io/usb-ff_10c4_ea60.present: "true"
   - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
