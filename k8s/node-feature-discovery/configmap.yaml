@@ -1,0 +1,14 @@
+apiVersion: v1
+data:
+  nfd-worker.conf: |
+    sources:
+      usb:
+        deviceLabelFields:
+          - "class"
+          - "vendor"
+          - "device"
+kind: ConfigMap
+metadata:
+  annotations:
+  name: nfd-worker-conf
+  namespace: node-feature-discovery
