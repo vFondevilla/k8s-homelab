@@ -7,7 +7,7 @@ spec:
   project: default 
   source:
     repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
-    path: node-feature-discovery
+    path: k8s/node-feature-discovery
     targetRevision: HEAD
   destination:
     server: 'https://kubernetes.default.svc'
