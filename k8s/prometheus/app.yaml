@@ -1,0 +1,83 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prometheus-stack
+  namespace: argocd 
+spec:
+  destination:
+    namespace: prom
+    server: https://kubernetes.default.svc
+  project: default
+  sources:
+  - repoURL: https://prometheus-community.github.io/helm-charts
+    targetRevision: 68.4.5
+    chart: kube-prometheus-stack
+    helm:
+      valuesObject:
+        namespaceOverride: prom
+        grafana:
+          persistence:
+            enabled: true
+            type: pvc
+            storageClassName: "nfs-synology"
+            lookupVolumeName: grafana-pv
+          enabled: true
+          # annotations:
+            # kubernetes.io/ingress.class: nginx
+          ingress:
+            # ingressClassName: nginx
+            enabled: true
+            hosts:
+              - grafana.apps.fondevilla.io
+            annotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+            tls:
+              - hosts:
+                  - grafana.apps.fondevilla.io
+                secretName: grafana-tls
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 472
+            runAsGroup: 472
+            fsGroup: 472
+        prometheus:
+          ingress:
+            # ingressClassName: nginx
+            enabled: true
+            annotations:
+              # kubernetes.io/ingress.class: nginx
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+            hosts:
+              - prometheus.apps.fondevilla.io
+            tls:
+              - hosts:
+                  - prometheus.apps.fondevilla.io
+                secretName: prometheus-tls
+          prometheusSpec:
+            ruleSelectorNilUsesHelmValues: false
+            serviceMonitorSelectorNilUsesHelmValues: false
+            podMonitorSelectorNilUsesHelmValues: false
+            probeSelectorNilUsesHelmValues: false
+            storageSpec:
+              volumeClaimTemplate:
+                spec:
+                  storageClassName: "rook-ceph-block"
+                  accessModes: ["ReadWriteOnce"]
+                  resources:
+                    requests:
+                      storage: 100Gi
+          coreDns:
+            enabled: true
+            service:
+              port: 9153
+              targetPort: 9153
+              selector:
+                k8s-app: kube-dns
+      
+  - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
+    path: k8s/prometheus
+    targetRevision: HEAD
+  syncPolicy:
+    # automated: {}
+    syncOptions:
+    - CreateNamespace=true
