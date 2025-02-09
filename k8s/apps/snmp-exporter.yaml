@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prometheus-snmp-exporter
+  namespace: argocd 
+spec:
+  destination:
+    namespace: prom
+    server: https://kubernetes.default.svc
+  project: default
+  sources:
+  - repoURL: https://prometheus-community.github.io/helm-charts
+    targetRevision: 6.0.0
+    chart: prometheus-snmp-exporter
+    helm:
+      valuesObject:
+        serviceMonitor:
+          enabled: true
+          namespace: prom
+          params:
+            - name: sw-core
+              target: 10.1.0.2
+              interval: 10s
+              scrapeTimeout: 10s
+            - name: sw-office
+              target: 10.1.0.6
+              interval: 10s
+              scrapeTimeout: 10s
+
+        #       auth: [public_v2]
+        # config: |
+        #   auths:
+        #     public_v2:
+        #       community: monit0r
+
+  # - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
+  #   path: k8s/prometheus
+  #   targetRevision: HEAD
+  syncPolicy:
+    automated: {}
+    syncOptions:
+    - CreateNamespace=true

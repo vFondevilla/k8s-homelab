@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: crossplane
+  namespace: argocd 
+spec:
+  destination:
+    namespace: newrelic
+    server: https://kubernetes.default.svc
+  project: default
+  sources:
+  - repoURL: https://charts.crossplane.io/stable
+    targetRevision: 1.18.2
+    chart: crossplane
+    # helm:
+      # valuesObject:
+
+  # - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
+  #   path: k8s/nr-k8s
+  #   targetRevision: HEAD
+  syncPolicy:
+    # automated: {}
+    syncOptions:
+    - CreateNamespace=true
