@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: zigbee2mqtt
+  name: zigbee2mqtt-net
   namespace: argocd 
 spec:
   destination:
@@ -22,20 +22,17 @@ spec:
           storage:
             enabled: true
             size: 2Gi
-            existingVolume: zigbee2mqtt
-            storageClassName: manual
-          nodeSelector: 
-            feature.node.kubernetes.io/usb-ff_10c4_ea60.present: "true"
+            storageClassName: rook-ceph-block
         zigbee2mqtt:
           serial:
-            port: /dev/ttyUSB0
-            # port: tcp://10.1.0.140:6638
+            port: tcp://10.1.0.140:6638
+            adapter: ezsp
           permit_join: true
           mqtt:
             server: "mqtt://mosquitto.mosquitto.svc.cluster.local"
-  - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
-    path: k8s/zigbee2mqtt
-    targetRevision: HEAD
+  # - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
+  #   path: k8s/zigbee2mqtt
+  #   targetRevision: HEAD
   syncPolicy:
     automated: {}
     syncOptions:
