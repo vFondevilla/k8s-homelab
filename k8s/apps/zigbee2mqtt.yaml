@@ -29,6 +29,7 @@ spec:
         zigbee2mqtt:
           serial:
             port: /dev/ttyUSB0
+            port: tcp://10.1.0.140:6638
           permit_join: true
           mqtt:
             server: "mqtt://mosquitto.mosquitto.svc.cluster.local"
