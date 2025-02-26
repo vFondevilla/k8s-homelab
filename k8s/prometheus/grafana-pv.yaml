@@ -9,10 +9,10 @@ spec:
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Recycle
-  storageClassName: nfs-synology
+  storageClassName: manual
   mountOptions:
     - hard
     - nfsvers=4.1
   nfs:
-    path: /volume3/k8s-static-pv/grafana
-    server: 10.1.0.3
+    path: /mnt/SSD/k8s_static_pv/grafana
+    server: 10.1.0.4
