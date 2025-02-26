@@ -21,7 +21,7 @@ spec:
           persistence:
             enabled: true
             type: pvc
-            storageClassName: "nfs-synology"
+            storageClassName: "manual"
             lookupVolumeName: grafana-pv
           enabled: true
           # annotations:
