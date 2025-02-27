@@ -65,7 +65,7 @@ persistence:
   config:
     enabled: true
     type: pvc
-    existingClaim: nfs
+    existingClaim: nfs-truenas
     size: 10Gi
   # -- Configure a hostPathMount to mount a USB device in the container.
   # @default -- See values.yaml
