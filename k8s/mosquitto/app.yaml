@@ -16,6 +16,10 @@ spec:
       valuesObject:
         service:
           externalTrafficPolicy: ""
+          type: LoadBalancer
+          annotations:
+            metallb.universe.tf/allow-shared-ip: mosquitto
+            metallb.universe.tf/ladBalancerIPs: 10.1.0.204
         persistence:
           enabled: true
           storageClass: manual
