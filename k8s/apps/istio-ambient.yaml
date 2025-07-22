@@ -1,0 +1,43 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: istio-ambient 
+  namespace: argocd 
+spec:
+  destination:
+    namespace: istio-system
+    server: https://kubernetes.default.svc
+  project: default
+  sources:
+  - repoURL: https://istio-release.storage.googleapis.com/charts
+    targetRevision: 1.26.2
+    chart: base
+    helm:
+      valuesObject:
+        profile: ambient
+  - repoURL: https://istio-release.storage.googleapis.com/charts
+    targetRevision: 1.26.2
+    chart: istiod
+    helm:
+      valuesObject:
+        profile: ambient
+  - repoURL: https://istio-release.storage.googleapis.com/charts
+    targetRevision: 1.26.2
+    chart: cni
+    helm: 
+      valuesObject:
+        profile: ambient
+  - repoURL: https://istio-release.storage.googleapis.com/charts
+    targetRevision: 1.26.2
+    chart: ztunnel
+    helm:
+      valuesObject:
+        profile: ambient
+
+  - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
+    path: k8s/istio-ambient
+    targetRevision: HEAD
+  syncPolicy:
+    # automated: {}
+    syncOptions:
+    - CreateNamespace=true
