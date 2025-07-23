@@ -9,6 +9,7 @@ resources:
 - https://raw.githubusercontent.com/argoproj/argo-cd/v2.13.2/manifests/install.yaml
 - metrics.yaml
 - app.yaml
+- install.yaml
 
 patches:
 - target:
