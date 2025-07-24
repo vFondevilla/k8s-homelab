@@ -36,3 +36,8 @@ secrets/age-key.txt
 
 # Exclude 1password-credentials.json anywhere on the repository
 1password-credentials.json
+
+velero/credentials
+
+# Exclude argocd-repositories.yaml
+argocd-repositories.yaml
