@@ -30,12 +30,12 @@ spec:
             ingressClassName: nginx
             enabled: true
             hosts:
-              - grafana.apps.fondevilla.io
+              - grafana.prod.fondevilla.io
             annotations:
               cert-manager.io/cluster-issuer: "letsencrypt-prod"
             tls:
               - hosts:
-                  - grafana.apps.fondevilla.io
+                  - grafana.prod.fondevilla.io
                 secretName: grafana-tls
           securityContext:
             runAsNonRoot: true
@@ -50,10 +50,10 @@ spec:
               # kubernetes.io/ingress.class: nginx
               cert-manager.io/cluster-issuer: "letsencrypt-prod"
             hosts:
-              - prometheus.apps.fondevilla.io
+              - prometheus.prod.fondevilla.io
             tls:
               - hosts:
-                  - prometheus.apps.fondevilla.io
+                  - prometheus.prod.fondevilla.io
                 secretName: prometheus-tls
           prometheusSpec:
             ruleSelectorNilUsesHelmValues: false
@@ -63,11 +63,11 @@ spec:
             storageSpec:
               volumeClaimTemplate:
                 spec:
-                  storageClassName: "rook-ceph-block"
                   accessModes: ["ReadWriteOnce"]
                   resources:
                     requests:
-                      storage: 100Gi
+                      storage: 200Gi
+                  volumeName: prometheus-pv
           coreDns:
             enabled: true
             service:
@@ -75,7 +75,15 @@ spec:
               targetPort: 9153
               selector:
                 k8s-app: kube-dns
-      
+        alertmanager:
+          config:
+            global:
+              resolve_timeout: 5m
+              slack_api_url: https://hooks.slack.com/services/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
+            route:
+              group_by: ['job']
+              group_wait: 30s
+
   - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
     path: k8s/prometheus
     targetRevision: HEAD
