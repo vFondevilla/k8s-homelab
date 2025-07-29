@@ -10,7 +10,7 @@ spec:
   project: default
   sources:
   - repoURL: https://charts.zigbee2mqtt.io
-    targetRevision: 2.0.0
+    targetRevision: 2.1.1
     chart: zigbee2mqtt
     helm:
       valuesObject:
@@ -26,10 +26,25 @@ spec:
         zigbee2mqtt:
           serial:
             port: tcp://10.1.0.140:6638
-            adapter: ezsp
+            adapter: ember
+            baudrate: 115200
+            advanced:
+              transmit_power: 20
           permit_join: true
           mqtt:
             server: "mqtt://mosquitto.mosquitto.svc.cluster.local"
+          advanced:
+            channel: 25
+        ingress:
+          enabled: true
+          ingressClassName: nginx
+          hosts:
+            - host: zigbee2mqtt.apps.fondevilla.io
+              paths:
+                - path: /
+                  pathType: ImplementationSpecific
+                - path: /api
+                  pathType: ImplementationSpecific
   # - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
   #   path: k8s/zigbee2mqtt
   #   targetRevision: HEAD

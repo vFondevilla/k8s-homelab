@@ -4,3 +4,4 @@ metadata:
   name: z2m
   labels:
      pod-security.kubernetes.io/enforce: privileged
+     istio.io/dataplane-mode: ambient
