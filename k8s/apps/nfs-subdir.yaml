@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nfs-subdir 
+  namespace: argocd 
+spec:
+  destination:
+    namespace: nfs-subdir 
+    server: https://kubernetes.default.svc
+  project: default
+  sources:
+  - repoURL: https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
+    targetRevision: 4.0.18
+    chart: nfs-subdir-external-provisioner
+    helm:
+      valuesObject:
+        nfs:
+          server: 10.1.0.4
+          path: /mnt/SSD/k8s_static_pv/
+        storageClass:
+          name: nfs
+          defaultClass: true
+  # - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
+  #   path: k8s/nr-k8s
+  #   targetRevision: HEAD
+  syncPolicy:
+    # automated: {}
+    syncOptions:
+    - CreateNamespace=true
