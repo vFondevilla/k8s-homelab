@@ -11,8 +11,6 @@ spec:
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
-    automated:
-      selfHeal: false
   sources:
     - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
       path: k8s/1password-connect

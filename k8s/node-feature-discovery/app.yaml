@@ -4,13 +4,12 @@ metadata:
   name: node-feature-discovery
   namespace: argocd
 spec:
-  project: default 
-  source:
-    repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
-    path: k8s/node-feature-discovery
-    targetRevision: HEAD
+  project: default
   destination:
     server: 'https://kubernetes.default.svc'
-  syncPolicy:
-    automated:
-      selfHeal: true
+  sources:
+    - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
+      path: k8s/node-feature-discovery
+      directory:
+        recurse: true
+      targetRevision: HEAD

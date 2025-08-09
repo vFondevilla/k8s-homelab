@@ -1,34 +1,19 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: mosquitto 
-  namespace: argocd 
+  name: mosquitto
+  namespace: argocd
 spec:
   destination:
     namespace: mosquitto
     server: https://kubernetes.default.svc
   project: default
   sources:
-  - repoURL: https://storage.googleapis.com/t3n-helm-charts
-    targetRevision: 2.4.1
-    chart: mosquitto
-    helm:
-      valuesObject:
-        service:
-          externalTrafficPolicy: ""
-          type: LoadBalancer
-          annotations:
-            metallb.universe.tf/allow-shared-ip: mosquitto
-            metallb.universe.tf/ladBalancerIPs: 10.1.0.204
-        persistence:
-          enabled: true
-          storageClass: manual
-        nodeSelector:
-          feature.node.kubernetes.io/usb-ff_10c4_ea60.present: "true"
-  - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
-    path: k8s/mosquitto
-    targetRevision: HEAD
+    - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
+      path: k8s/mosquitto
+      directory:
+        recurse: true
+      targetRevision: HEAD
   syncPolicy:
-    automated: {}
     syncOptions:
-    - CreateNamespace=true
+      - CreateNamespace=true

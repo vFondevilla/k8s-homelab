@@ -1,19 +1,19 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: rook-ceph
+  name: loki
   namespace: argocd
 spec:
-  project: default
   destination:
-    server: 'https://kubernetes.default.svc'
-    namespace: rook-ceph
-  syncPolicy:
-    syncOptions:
-      - CreateNamespace=true
+    namespace: loki
+    server: https://kubernetes.default.svc
+  project: default
   sources:
     - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
-      path: k8s/rook
+      path: k8s/loki
       directory:
         recurse: true
       targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
