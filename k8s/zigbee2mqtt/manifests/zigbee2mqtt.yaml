@@ -1,0 +1,171 @@
+---
+# Source: zigbee2mqtt/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zigbee2mqtt
+  namespace: z2m
+  labels:
+    app.kubernetes.io/instance: "zigbee2mqtt"
+    app.kubernetes.io/managed-by: "Helm"
+    app.kubernetes.io/name: "zigbee2mqtt"
+    app.kubernetes.io/version: "2.0.0"
+    helm.sh/chart: "zigbee2mqtt-2.0.0"
+data:
+  configuration.yaml: |
+    # Define the files which contains the configs. As k8s config maps
+    # Are read only by design, we need to extract dynamic config to external files
+    devices: devices.yaml
+    groups: groups.yaml
+    homeassistant:
+      discovery_topic: homeassistant
+      enabled: true
+      legacy_entity_attributes: true
+      legacy_triggers: false
+      status_topic: hass/status
+    ota:
+      disable_automatic_update_check: false
+      ikea_ota_use_test_url: false
+      update_check_interval: 1440
+    permit_join: true
+    blocklist: []
+    availability:
+      active:
+        timeout: 10
+      passive:
+        timeout: 1500
+    mqtt:
+      server: mqtt://mosquitto.mosquitto.svc.cluster.local
+    serial:
+      baudrate: 115200
+      disable_led: false
+      port: /dev/ttyUSB0
+      rtscts: false
+    frontend:
+      host: 0.0.0.0
+      port: 8080
+    advanced:
+      adapter_delay: 0
+      cache_state: true
+      cache_state_persistent: true
+      cache_state_send_on_startup: true
+      channel: 11
+      elapsed: false
+      last_seen: disable
+      legacy_api: false
+      log_level: info
+      log_output:
+      - console
+      report: true
+      timestamp_format: YYYY-MM-DD HH:mm:ss
+      transmit_power: 5
+---
+# Source: zigbee2mqtt/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: zigbee2mqtt
+  namespace: z2m
+  labels:
+    app.kubernetes.io/instance: "zigbee2mqtt"
+    app.kubernetes.io/managed-by: "Helm"
+    app.kubernetes.io/name: "zigbee2mqtt"
+    app.kubernetes.io/version: "2.0.0"
+    helm.sh/chart: "zigbee2mqtt-2.0.0"
+spec:
+  type: LoadBalancer
+  selector:
+    app: zigbee2mqtt
+  ports:
+    - name: http
+      port: 8080
+      targetPort: web
+      protocol: TCP
+---
+# Source: zigbee2mqtt/templates/statefulset.yaml
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  name: zigbee2mqtt
+  namespace: z2m
+  labels:
+    app.kubernetes.io/instance: "zigbee2mqtt"
+    app.kubernetes.io/managed-by: "Helm"
+    app.kubernetes.io/name: "zigbee2mqtt"
+    app.kubernetes.io/version: "2.0.0"
+    helm.sh/chart: "zigbee2mqtt-2.0.0"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zigbee2mqtt
+  template:
+    metadata:
+      annotations:
+        checksum/configuration: e90ba2ba0cff33d770b38b440a86240325ce118bcb91936287d8d901f7637efb
+      labels:
+        app.kubernetes.io/instance: "zigbee2mqtt"
+        app.kubernetes.io/managed-by: "Helm"
+        app.kubernetes.io/name: "zigbee2mqtt"
+        app.kubernetes.io/version: "2.0.0"
+        helm.sh/chart: "zigbee2mqtt-2.0.0"
+        app: zigbee2mqtt
+    spec:
+      dnsPolicy: ClusterFirst
+      nodeSelector:
+        feature.node.kubernetes.io/usb-ff_10c4_ea60.present: "true"
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: zigbee2mqtt
+          image: "koenkk/zigbee2mqtt:1.42.0"
+          securityContext:
+            capabilities:
+              add:
+              - SYS_ADMIN
+            privileged: true
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: TZ
+              value: UTC
+          ports:
+            - containerPort: 8080
+              name: web
+              protocol: TCP
+          livenessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /
+              port: web
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+          volumeMounts:
+            - mountPath: /app/data/configuration.yaml
+              name: config-volume
+              subPath: configuration.yaml
+            - mountPath: /app/data/
+              name: data-volume
+          resources:
+            limits:
+              cpu: 200m
+              memory: 600Mi
+            requests:
+              cpu: 200m
+              memory: 600Mi
+      volumes:
+        - name: config-volume
+          configMap:
+            name: zigbee2mqtt
+  volumeClaimTemplates:
+  - metadata:
+      name: data-volume
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: manual
+      volumeName: zigbee2mqtt
+      resources:
+        requests:
+          storage: 2Gi
+
