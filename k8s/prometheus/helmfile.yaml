@@ -6,7 +6,7 @@ releases:
   - name: kube-prometheus-stack
     namespace: prom
     chart: helm-charts/kube-prometheus-stack
-    version: 68.4.5
+    version: 68.5.0
     createNamespace: true
     values:
       -
