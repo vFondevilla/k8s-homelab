@@ -4,11 +4,7 @@ metadata:
   name: argocd
   namespace: argocd
 spec:
-  project: default 
-  source:
-    repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
-    path: k8s/argo
-    targetRevision: HEAD
+  project: default
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: argocd
@@ -17,3 +13,9 @@ spec:
       selfHeal: false
     syncOptions:
       - CreateNamespace=true
+  sources:
+    - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
+      path: k8s/argo
+      directory:
+        recurse: true
+      targetRevision: HEAD

@@ -12,7 +12,7 @@ metadata:
 spec:
   tls:
     - hosts:
-        - argo.apps.fondevilla.io
+        - argo.prod.fondevilla.io
       secretName: argocd-tls
   rules:
   - http:
@@ -24,7 +24,7 @@ spec:
             name: argocd-server
             port:
               name: http
-    host: argo.apps.fondevilla.io
+    host: argo.prod.fondevilla.io
   # tls:
   # - hosts:
     # - argocd.example.com
