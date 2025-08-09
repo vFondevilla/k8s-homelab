@@ -1,0 +1,22 @@
+repositories:
+  - name: charts-external-secrets-io
+    url: https://charts.external-secrets.io
+
+releases:
+  - name: external-secrets
+    namespace: external-secrets
+    chart: charts-external-secrets-io/external-secrets
+    version: 0.11.0
+    createNamespace: true
+    values:
+      -
+        extendedMetricLabels: true
+        serviceMonitor:
+          enabled: true
+        certManager:
+          enabled: true
+          cert:
+            issuerRef:
+              name: letsencrypt-prod
+              kind: ClusterIssuer
+              group: cert-manager.io

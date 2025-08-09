@@ -1,0 +1,82 @@
+repositories:
+  - name: helm-charts
+    url: https://prometheus-community.github.io/helm-charts
+
+releases:
+  - name: kube-prometheus-stack
+    namespace: prom
+    chart: helm-charts/kube-prometheus-stack
+    version: 68.4.5
+    createNamespace: true
+    values:
+      -
+        namespaceOverride: prom
+        crds:
+          enabled: false
+        grafana:
+          persistence:
+            enabled: true
+            type: pvc
+            storageClassName: manual
+            lookupVolumeName: grafana-pv
+          enabled: true
+          ingress:
+            ingressClassName: nginx
+            enabled: true
+            hosts:
+              - grafana.prod.fondevilla.io
+            annotations:
+              cert-manager.io/cluster-issuer: letsencrypt-prod
+            tls:
+              - hosts:
+                  - grafana.prod.fondevilla.io
+                secretName: grafana-tls
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 472
+            runAsGroup: 472
+            fsGroup: 472
+        prometheus:
+          ingress:
+            ingressClassName: nginx
+            enabled: true
+            annotations:
+              cert-manager.io/cluster-issuer: letsencrypt-prod
+            hosts:
+              - prometheus.prod.fondevilla.io
+            tls:
+              - hosts:
+                  - prometheus.prod.fondevilla.io
+                secretName: prometheus-tls
+          prometheusSpec:
+            ruleSelectorNilUsesHelmValues: false
+            serviceMonitorSelectorNilUsesHelmValues: false
+            podMonitorSelectorNilUsesHelmValues: false
+            probeSelectorNilUsesHelmValues: false
+            storageSpec:
+              volumeClaimTemplate:
+                spec:
+                  accessModes:
+                    - ReadWriteOnce
+                  resources:
+                    requests:
+                      storage: 200Gi
+                  selector:
+                    matchLabels:
+                      app: prometheus
+          coreDns:
+            enabled: true
+            service:
+              port: 9153
+              targetPort: 9153
+              selector:
+                k8s-app: kube-dns
+        alertmanager:
+          config:
+            global:
+              resolve_timeout: 5m
+              slack_api_url: https://hooks.slack.com/services/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
+            route:
+              group_by:
+                - job
+              group_wait: 30s

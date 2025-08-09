@@ -1,0 +1,23 @@
+repositories:
+  - name: t3n-helm-charts
+    url: https://storage.googleapis.com/t3n-helm-charts
+
+releases:
+  - name: mosquitto
+    namespace: mosquitto
+    chart: t3n-helm-charts/mosquitto
+    version: 2.4.1
+    createNamespace: true
+    values:
+      -
+        service:
+          externalTrafficPolicy: ""
+          type: LoadBalancer
+          annotations:
+            metallb.universe.tf/allow-shared-ip: mosquitto
+            metallb.universe.tf/ladBalancerIPs: 10.1.0.204
+        persistence:
+          enabled: true
+          storageClass: manual
+        nodeSelector:
+          feature.node.kubernetes.io/usb-ff_10c4_ea60.present: "true"

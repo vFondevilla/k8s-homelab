@@ -1,0 +1,31 @@
+repositories:
+  - name: zigbee2mqtt
+    url: https://charts.zigbee2mqtt.io
+
+releases:
+  - name: zigbee2mqtt
+    namespace: z2m
+    chart: zigbee2mqtt/zigbee2mqtt
+    version: 2.0.0
+    createNamespace: true
+    values:
+      # Base values from repo
+      - values.yaml
+      # Overrides aligned with current Argo Application valuesObject
+      - image:
+          tag: 1.42.0
+        statefulset:
+          storage:
+            enabled: true
+            size: 2Gi
+            existingVolume: zigbee2mqtt
+            storageClassName: manual
+          nodeSelector:
+            feature.node.kubernetes.io/usb-ff_10c4_ea60.present: "true"
+        zigbee2mqtt:
+          serial:
+            port: /dev/ttyUSB0
+          permit_join: true
+          mqtt:
+            server: "mqtt://mosquitto.mosquitto.svc.cluster.local"
+

@@ -1,0 +1,19 @@
+repositories:
+  - name: release
+    url: https://charts.rook.io/release
+
+releases:
+  - name: rook-ceph
+    namespace: rook-ceph
+    chart: release/rook-ceph
+    version: v1.16.2
+    createNamespace: true
+    values:
+      -
+        enableDiscoveryDaemon: true
+        discoveryDaemonInterval: 10m
+        monitoring:
+          enabled: true
+        csi:
+          serviceMonitor:
+            enabled: true
