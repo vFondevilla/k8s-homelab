@@ -14,6 +14,4 @@ spec:
   sources:
     - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
       path: k8s/argo
-      directory:
-        recurse: true
       targetRevision: HEAD
