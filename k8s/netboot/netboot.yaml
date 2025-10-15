@@ -1,0 +1,154 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: netbootxyz
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: netbootxyz
+  namespace: netbootxyz
+  labels:
+    app: netbootxyz
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: netbootxyz
+  template:
+    metadata:
+      labels:
+        app: netbootxyz
+    spec:
+      # securityContext:
+      #   fsGroup: 1000
+      #   runAsUser: 1000
+      #   runAsGroup: 1000
+      containers:
+        - name: netbootxyz
+          image: ghcr.io/netbootxyz/netbootxyz
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: MENU_VERSION
+              value: "2.0.84"
+            - name: NGINX_PORT
+              value: "80"
+            - name: WEB_APP_PORT
+              value: "3000"
+          ports:
+            - name: tftp
+              containerPort: 69
+              protocol: UDP
+            - name: http
+              containerPort: 80
+              protocol: TCP
+            - name: webapp
+              containerPort: 3000
+              protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: assets
+              mountPath: /assets
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: netbootxyz-config-pvc
+        - name: assets
+          persistentVolumeClaim:
+            claimName: netbootxyz-assets-pvc
+---
+# TCP LB for HTTP (80) and web app (3000)
+apiVersion: v1
+kind: Service
+metadata:
+  name: netbootxyz-tcp
+  namespace: netbootxyz
+  annotations:
+    metallb.io/allow-shared-ip: "netbootxyz"
+spec:
+  type: LoadBalancer
+  loadBalancerIP: 10.1.0.206
+  selector:
+    app: netbootxyz
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP
+    - name: webapp
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: tftp
+      port: 69
+      targetPort: 69
+      protocol: UDP
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: netbootxyz-config-pv
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Recycle
+  storageClassName: manual
+  mountOptions:
+    - hard
+    - nfsvers=4.1
+  nfs:
+    server: 10.1.0.4
+    path: /mnt/SSD/k8s_static_pv/netbootxyz/config
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: netbootxyz-config-pvc
+  namespace: netbootxyz
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: manual
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: netbootxyz-assets-pv
+spec:
+  capacity:
+    storage: 100Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Recycle
+  storageClassName: manual
+  mountOptions:
+    - hard
+    - nfsvers=4.1
+  nfs:
+    path: /mnt/SSD/k8s_static_pv/netbootxyz/assets
+    server: 10.1.0.4
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: netbootxyz-assets-pvc
+  namespace: netbootxyz
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+
