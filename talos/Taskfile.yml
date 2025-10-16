@@ -9,4 +9,7 @@ tasks:
         silent: true
     encrypt:
         cmds:
-            - find . -type f -name "*.yaml" -exec sops encrypt -i {} \;
+            - find ./*/* -type f -exec sops encrypt -i {} \;
+    decrypt:
+        cmds:
+            - find ./*/* -type f -exec sops decrypt -i {} \;

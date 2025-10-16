@@ -8,7 +8,7 @@ machine:
     # Defines the role of the machine within the cluster.
     type: worker
     # The `token` is used by a machine to join the PKI of the cluster.
-    token: ENC[AES256_GCM,data:T+TAl2DczIEcdkX/9aZiMnUWaacbzJ8=,iv:NmpQWTCjySV+vEzbpFm0rDje4TdssKtftiYKf8RNkRY=,tag:OiyB1Kt1eEbAJew/+pIATg==,type:str]
+    token: ENC[AES256_GCM,data:2xrvRibRQWFWDpmtb2n0bQIaJNflSW8=,iv:WkrXUAzq2vP5lbzqcgv8NHKju2Ldk+qxpXPh0B8bPk0=,tag:UHIIRAGcr0wLGdpLAiuQYw==,type:str]
     # The root certificate authority of the PKI.
     ca:
         crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJQekNCOHFBREFnRUNBaEVBcmZzSVJjb1EyV1BZanNxVU5iZ1Z4akFGQmdNclpYQXdFREVPTUF3R0ExVUUKQ2hNRmRHRnNiM013SGhjTk1qVXdOekl6TVRneU1qSXhXaGNOTXpVd056SXhNVGd5TWpJeFdqQVFNUTR3REFZRApWUVFLRXdWMFlXeHZjekFxTUFVR0F5dGxjQU1oQUY1NXZESnQzWjgyS2hCRjFuWk1oaXExL2xySHJWRzRUdnlQCklNQ1lhWGU0bzJFd1h6QU9CZ05WSFE4QkFmOEVCQU1DQW9Rd0hRWURWUjBsQkJZd0ZBWUlLd1lCQlFVSEF3RUcKQ0NzR0FRVUZCd01DTUE4R0ExVWRFd0VCL3dRRk1BTUJBZjh3SFFZRFZSME9CQllFRklCR2tsS1BvU1lqWG9sSApMU1lmd0VZY1BCUHdNQVVHQXl0bGNBTkJBSmEzMUIvTUlZUWNTR2ROYkxZTy83NmdqYU9tMEoyQjlHYXZINFk1CmdkOHpMQTlGK1pGUEgzMG9lS29lSVhoemZsQWVOVFJJNDUyTVRVMlgrYVp4a2d3PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
@@ -394,7 +394,7 @@ cluster:
             #     urls:
             #         - https://docs.projectcalico.org/archive/v3.20/manifests/canal.yaml
     # The [bootstrap token](https://kubernetes.io/docs/reference/access-authn-authz/bootstrap-tokens/) used to join the cluster.
-    token: ENC[AES256_GCM,data:tDZQKS3tHXYxtqaxunO72TKKBpBRyi4=,iv:hkrxB3q+3pQ1MpWTtpQDNT1wYW01ssiWDE63tZ452Uc=,tag:jDlic3ceTpO0NG4BZ2RBuQ==,type:str]
+    token: ENC[AES256_GCM,data:zDCWeox4tr0/5I0UTMACRScnUEY6Lew=,iv:26Z3DwNjxSTVZq1mmvdePJlJWFLo5XYQUAlDKeIngGY=,tag:01HlvnFsmtGesXg+dQvg3Q==,type:str]
     # The base64 encoded root certificate authority used by Kubernetes.
     ca:
         crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJpekNDQVRDZ0F3SUJBZ0lSQUtSQ0ovM0pFOFhwNTBsY20yak5WWVl3Q2dZSUtvWkl6ajBFQXdJd0ZURVQKTUJFR0ExVUVDaE1LYTNWaVpYSnVaWFJsY3pBZUZ3MHlOVEEzTWpNeE9ESXlNakZhRncwek5UQTNNakV4T0RJeQpNakZhTUJVeEV6QVJCZ05WQkFvVENtdDFZbVZ5Ym1WMFpYTXdXVEFUQmdjcWhrak9QUUlCQmdncWhrak9QUU1CCkJ3TkNBQVRkRVZnbEc0RnVSQUdOakhJdkVKaVZYMTBzQ0ZoNXZYeWZjRG5FeWJCSE54Si9wdzRVaTNjQXVwb0sKS1pLRGIyaTJ1cWZGbFZta1BtK3dzNjNsMHZlWm8yRXdYekFPQmdOVkhROEJBZjhFQkFNQ0FvUXdIUVlEVlIwbApCQll3RkFZSUt3WUJCUVVIQXdFR0NDc0dBUVVGQndNQ01BOEdBMVVkRXdFQi93UUZNQU1CQWY4d0hRWURWUjBPCkJCWUVGQWhKZXNSSTl6OWtmZ0xwZnp4TGhTWUZLYnQ3TUFvR0NDcUdTTTQ5QkFNQ0Ewa0FNRVlDSVFDVFVHTnYKV2RxZG5ZSFNoL1BKT0pVa1FrMzZGbDJMRXd2SlRsYllHVGZFbVFJaEFOZGo1Ly94VGIrTkxNc2k1UUFaRFYxVgpXaS9MZGxJOGFhSjJnd1FYb2N3OAotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
@@ -558,14 +558,14 @@ sops:
         - recipient: age1mj0dy50zdfyxkwd2av4jf3hn9zgpxn9rukypgv2976zd6al234zsm68f0k
           enc: |
             -----BEGIN AGE ENCRYPTED FILE-----
-            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSB4V3Z5dG1oaWxHait1NkIz
-            MEs4UnFzY0JZaDlDeE02cFJIWDFmLzhhT0J3CmtYSlZ0Mkx5NXpxcjAvaSswbEVB
-            MnkvczIzbHJQU0owSk9OZXk2TDBTQ3cKLS0tIDhMSHE1ZVJ1VzRwbHpwWEVzMTJS
-            MkhVRzkzSU5wRTRkWDBHU3dNeE56VVkK5S/n8AMRBrhd5Bn6FSH+fD3pP7lm8GjR
-            thnBxS3vgP0TjCkH/SLTiG3J50WXkb3Vdt+2rLwvCZGO65z1Fn0n/Q==
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBVWnJZZ2VmdFBmeEN2Sm1y
+            N3BSSUFucFJwWHdjSnY2bmhjSUJjNHhlNnhFCkhOZ2hEUUZjb2RIVWxMWldmL2Z4
+            aG1iMk81djNDbzM0YTRCZnd6TW1hV2cKLS0tIFRTTGpDZWR1RXpwWHlXUk81enVs
+            TVhZQmg0ZnFPSVVOMkl4eGhYY2ErSE0Kd9Hf5Mcv+n9SujYAyl0wdU8WcMJnKGQ7
+            BYmH7+zANxIO71nDhgIJqpLQrpv/c94ejy/9R9ZRnw40nIhwWh4lqA==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2025-10-16T07:29:48Z"
-    mac: ENC[AES256_GCM,data:IO6hhQztRxevcUiSvrOh1tEjXhP2ZkVPeDNPoxBymJxq2ypgJmDmrPOI2zX9u066PNoaaCHSf5ybcIw68AR23iSbRZTZ423Ao9P7IgnIj91zz1c8C3ASiPwvD4RKP0FGq36LCbpoE/QcPKMrsJSIVtViQ4pCw8VCC1jAqsln1Gg=,iv:ETwFlIe9RfFubp14JV3c4IkXLQfhyokA57JbGc+kJdc=,tag:J4B1mLnS4FBzt8R4OmwEzw==,type:str]
+    lastmodified: "2025-10-16T07:36:57Z"
+    mac: ENC[AES256_GCM,data:Rn9z/ZhXycdzDbNPCT3VXyPlQzJOd/yuRglRa6U5VPgsrESeXwpsQ3Ym6vBQM9FRMKvkMg5tL9QDp321yHQO6rG4e187YHohH7Bh3YQ+ujL0+kcxMaM/ts+f3yq3YDQUOf/zxvGGntjv1vx/KXa9Dt0WgvkM++I/XCA6dm5Z/Pc=,iv:fWxC9Z8hA1ijaJTyxwjs8/k+gvU8h28yMmJPPWxaRwU=,tag:MbG3OGhdQOfLYb6CayUzkA==,type:str]
     encrypted_regex: ^(token|key)$
     mac_only_encrypted: true
     version: 3.10.2
