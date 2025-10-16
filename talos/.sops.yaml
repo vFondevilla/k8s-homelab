@@ -1,0 +1,22 @@
+creation_rules:
+    - path_regex: .*
+      age: age1mj0dy50zdfyxkwd2av4jf3hn9zgpxn9rukypgv2976zd6al234zsm68f0k
+      encrypted_regex: ^(token|key)$
+      version: 3.10.2
+      mac_only_encrypted: true
+sops:
+    age:
+        - recipient: age1mj0dy50zdfyxkwd2av4jf3hn9zgpxn9rukypgv2976zd6al234zsm68f0k
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBDREY5dWJPaE45Q3EyYkxT
+            WllveksyYXJ6Tm5hbXR3RW85OTBVWFpDUERrCk5UdDJDT3FDbE9HN3F5Z3F2TGho
+            TkM0Mi9NeFpEQytKanpCc2JVMGtkR0UKLS0tIFg4NGhZRUM3cnptZ3RsQjFMMTRv
+            QTJTUVNyOWNhd1hycVRqelJhV3puc1kKu2mDuHK0EWve0N4XPefk1+CPwR097sHN
+            uDTZgm6woVnr/g2ohZ+OpOYi7T6XsGH8eMu9RYOyA6xzIwqFKO6vVQ==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2025-10-16T07:02:28Z"
+    mac: ENC[AES256_GCM,data:ev3WqZrYISzJzYZRZ7wuhd2zxhueVpo4S4azcA4yKfrUmhW4n3bfAsvgX1nYeMbfCuxcP7dxGLeDvEnn8FwYcZd7TgNoPx9iTc0eoveDKjVutFe930uI7FFYWsg8zTeG/5exvU/pjppj15TZY8HJsbb4yR0oJE2MbQOlW/eqkgY=,iv:n/jXI4ZRx9ZGmELb4U9a/S6xYTo1+2Dg5KG1cu3DByw=,tag:75jBPrEoFnVTsF5z96grwA==,type:str]
+    encrypted_regex: ^(token|key)$
+    mac_only_encrypted: true
+    version: 3.10.2
