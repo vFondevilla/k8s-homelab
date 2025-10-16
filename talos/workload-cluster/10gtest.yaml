@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+    name: netshoot-hostnetwork
+    namespace: kube-system
+spec:
+    selector:
+        matchLabels:
+            app: netshoot
+    template:
+        metadata:
+            labels:
+                app: netshoot
+        spec:
+            hostNetwork: true
+            containers:
+                - name: netshoot
+                  image: nicolaka/netshoot
+                  command:
+                    - sleep
+                    - infinity
+sops:
+    age:
+        - recipient: age1mj0dy50zdfyxkwd2av4jf3hn9zgpxn9rukypgv2976zd6al234zsm68f0k
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBscWp1ZEtIZE1nbDBOSG1S
+            QisxRHR3STdhQWplOTFpVitLcjZTTWNjTlg0CkVmQndSKzRXS1liU0VTQzEzek5L
+            aENYRGRNVG1UQ20zZW1NQnRxY2Q5WnMKLS0tIDBBSnZUODJQSVlPL01rWTQxQzdl
+            aVBiRE9qb0FsazFudTcrKzdOL3U5QUEKC05nYP1tkUa6SlHZZYcPNxAzL7AuIsrG
+            xF3lflA2PKdD/UTj53d8MOuraQc7Fk1pbwAhZ96KA4AMK29wX/MjwA==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2025-10-16T08:22:25Z"
+    mac: ENC[AES256_GCM,data:JEIQQ32LcMrp1pjf+NzB4YroebDBm+ctchMZALQ0zq+9j8Ql2mdfOkMD9G4oTYAE1hGjAOVZfyshRhsAz/RATUB4UJ1ZcpKF2ebGCYqcXGYjhmlHWkfEGRA/eY1BU23y4Q8wMaULZxXHWlt5bBbfTMa8NT7c/tAL4+ubamdXe3s=,iv:a4+GV47+kUKeGuppZ9odJdVF4f7DX9df7T6rT0T/chQ=,tag:PmwQ79bUCs2/C5IYaFTf1w==,type:str]
+    encrypted_regex: ^(token|key)$
+    mac_only_encrypted: true
+    version: 3.10.2

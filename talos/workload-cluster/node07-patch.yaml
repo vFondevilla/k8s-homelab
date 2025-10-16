@@ -1,0 +1,23 @@
+machine:
+    network:
+        interfaces:
+            - interface: enp2s0f0np0
+              addresses:
+                - 10.254.0.17/24
+        hostname: node07.fondevilla.io
+sops:
+    age:
+        - recipient: age1mj0dy50zdfyxkwd2av4jf3hn9zgpxn9rukypgv2976zd6al234zsm68f0k
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBLTklBY1dSalEwWUdZNVlj
+            TSt2alJTdUw3NmY3WUtlOFNMemNtL3dlWG5jCm44QWJBVXRKMStxc1FiWEhma0FU
+            d21DZEVNL2ZDUEdGWEFVTm9BcEN4b2cKLS0tIE8wczk2aFVoaHh3K2l3SXVrVUV2
+            aG13NjlKOWdjTzY1emh5MjFJMnVIZDQKzn2IPBhcPH2yZ7+YrjNWHY2hRPLgIApi
+            zeZvPrD7vIaTJP/xxVopy/JpIwjhdIUCt+oJB8JuxiqD6o/uHhzoIQ==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2025-10-16T08:22:25Z"
+    mac: ENC[AES256_GCM,data:HWHd8B6al44etyj6kLZ+GOypoKhd8Ki8zOege6iHHmcewTsLDLJOKpCsFXCfUBj4LbX0BuTmNFTxEd/d/kR55ZEHVq7pBShQte/d4LHTrYC26AEucllvbaUxxnf/HFaiCv0VRkxfKuXvYR6J8oYcwB06uv4gbTEfDnZFpmgJ5Tw=,iv:a5+F7KXN/maB5gW6gnNcVRnczB7fx7/+9DEpoQd9Hls=,tag:3gi7p3/Gdgk2cGcVKZpsLA==,type:str]
+    encrypted_regex: ^(token|key)$
+    mac_only_encrypted: true
+    version: 3.10.2
