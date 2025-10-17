@@ -1,0 +1,13 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kubevirt
+  namespace: argocd 
+spec:
+  destination:
+    namespace: 
+    server: https://kubernetes.default.svc
+  project: default
+  sources:
+  - repoURL: https://kubeovn.github.io/kube-ovn/
+    targetRevision: v1.14.11
