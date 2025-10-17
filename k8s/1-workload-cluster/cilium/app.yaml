@@ -1,0 +1,43 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cilium
+  namespace: argocd 
+spec:
+  destination:
+    namespace: kube-system
+    server: https://k8s.fondevilla.io:6443
+  project: default
+  source:
+    repoURL: https://helm.cilium.io/
+    targetRevision: 1.18.2
+    chart: cilium
+    helm:
+      valuesObject:
+        ipam:
+          mode: kubernetes
+        kubeProxyReplacement: true
+        securityContext:
+          capabilities:
+            ciliumAgent: 
+              - CHOWN
+              - KILL
+              - NET_ADMIN
+              - NET_RAW
+              - IPC_LOCK
+              - SYS_ADMIN
+              - SYS_RESOURCE
+              - DAC_OVERRIDE
+              - FOWNER
+              - SETGID
+              - SETUID
+            cleanCiliumState: 
+              - NET_ADMIN
+              - SYS_ADMIN
+              - SYS_RESOURCE
+        cgroup:
+          autoMount:
+            enabled: false
+          hostRoot: /sys/fs/cgroup
+        k8sServiceHost: localhost
+        k8sServicePort: 7445
