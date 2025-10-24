@@ -8,7 +8,7 @@ spec:
     namespace: kube-system
     server: https://k8s.fondevilla.io:6443
   project: default
-  source:
+  sources:
     - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
       path: k8s/1-workload-cluster/multus
       directory:
