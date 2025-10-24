@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kubevirt
+  namespace: argocd 
+spec:
+  destination:
+    namespace: kubevirt
+    server: https://k8s.fondevilla.io:6443
+  - repoURL: https://kubeovn.github.io/kube-ovn/
+    targetRevision: v1.14.11
+    chart: kube-ovn
+    helm:
+      valuesObject:
+        OVN_DIR: /var/lib/ovn
+        OPENVSWITCH_DIR: /var/lib/openvswitch
+        DISABLE_MODULES_MANAGEMENT: true
+        cni_conf:
+          MOUNT_LOCAL_BIN_DIR: false
