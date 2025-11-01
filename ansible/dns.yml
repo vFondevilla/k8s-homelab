@@ -1,0 +1,75 @@
+---
+- name: Manage DNS records in Cloudflare
+  hosts: localhost
+  gather_facts: false
+  connection: local
+  collections:
+    - community.general
+
+  vars:
+    # Example usage (override in inventory/group_vars/extra-vars):
+    # dns_zone: "example.com"
+    # dns_records:
+    #   www:
+    #     type: A
+    #     value: 203.0.113.10
+    #     ttl: 300
+    #     proxied: true            # optional
+    #   api:
+    #     type: CNAME
+    #     value: www
+    #     ttl: 300
+    #   mx:
+    #     type: MX
+    #     value: mail.example.com
+    #     ttl: 3600
+    #     priority: 10            # optional (for MX/SRV)
+
+  pre_tasks:
+    - name: Compute regex-escaped zone for FQDN handling
+      ansible.builtin.set_fact:
+        dns_zone_regex_escaped: "{{ dns_zone | replace('.', '\\.') }}"
+
+    - name: Assert required variables are provided
+      ansible.builtin.assert:
+        that:
+          - dns_zone is defined
+          - dns_zone | length > 0
+          - dns_records is defined
+          - dns_records | length > 0
+          - cloudflare_api_key is defined
+          - cloudflare_api_key | length > 0
+        fail_msg: "Define 'dns_zone', 'dns_records', and 'cloudflare_api_key' in inventory or group_vars."
+
+  tasks:
+    - name: Ensure Python requests is available (for Cloudflare module)
+      ansible.builtin.pip:
+        name: requests
+
+    - name: Create/Update DNS records in Cloudflare
+      community.general.cloudflare_dns:
+        zone: "{{ dns_zone }}"
+        # Support both relative names (e.g. "*.cp") and FQDNs (e.g. "*.cp.{{ dns_zone }}").
+        # If the key equals the zone or becomes empty after trimming, use root '@'.
+        record: "{{ (item.key | regex_replace('(?:\\.)?' ~ dns_zone_regex_escaped ~ '$','')) | default('@', true) }}"
+        type: "{{ item.value.type }}"
+        value: "{{ item.value.value }}"
+        ttl: "{{ item.value.ttl | default(300) }}"
+        proxied: "{{ item.value.proxied | default(omit) }}"
+        priority: "{{ item.value.priority | default(omit) }}"
+        state: present
+        api_token: "{{ cloudflare_api_key }}"
+      loop: "{{ dns_records | dict2items }}"
+      loop_control:
+        label: "{{ (item.key | regex_replace('(?:\\.)?' ~ dns_zone_regex_escaped ~ '$','')) | default('@', true) }} ({{ item.value.type }})"
+
+    # Optional removal example (enable if using desired-state lists)
+    # - name: Remove DNS records marked absent
+    #   community.general.cloudflare_dns:
+    #     zone: "{{ dns_zone }}"
+    #     record: "{{ item.key }}"
+    #     type: "{{ item.value.type }}"
+    #     value: "{{ item.value.value }}"
+    #     api_token: "{{ cloudflare_api_key }}"
+    #     state: absent
+    #   loop: "{{ dns_records | dict2items | selectattr('value.state', 'defined') | selectattr('value.state', 'equalto', 'absent') | list }}"

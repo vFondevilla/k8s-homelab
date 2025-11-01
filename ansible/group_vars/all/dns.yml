@@ -1,0 +1,31 @@
+---
+# Cloudflare DNS zone to manage
+dns_zone: fondevilla.io
+
+# Dictionary of DNS records to apply.
+# Key = record name (relative to zone). Value has: type, value, ttl, and optional proxied/priority.
+dns_records:
+  _cf-ansible:
+    type: TXT
+    value: managed-by-ansible
+    ttl: 120
+  # Use quotes for wildcard keys to avoid YAML anchors
+  "*.cp.fondevilla.io":
+    type: A
+    value: 10.1.0.10
+    ttl: 300
+    proxied: false
+  # www:
+  #   type: A
+  #   value: 203.0.113.10
+  #   ttl: 300
+  #   proxied: true
+  # api:
+  #   type: CNAME
+  #   value: www
+  #   ttl: 300
+  # mx:
+  #   type: MX
+  #   value: mail.fondevilla.io
+  #   ttl: 3600
+  #   priority: 10
