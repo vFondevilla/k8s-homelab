@@ -1,0 +1,99 @@
+version: "3.8"
+
+services:
+  traefik:
+    image: traefik:v3.4
+    container_name: traefik
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - proxy
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=proxy"
+      - "--entryPoints.web.address=:80"
+      - "--entryPoints.websecure.address=:443"
+      - "--entryPoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entryPoints.web.http.redirections.entryPoint.permanent=true"
+      - "--certificatesresolvers.le.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.le.acme.dnschallenge.provider=cloudflare"
+      - "--certificatesresolvers.le.acme.dnschallenge.resolvers=1.1.1.1:53,8.8.8.8:53"
+      - "--certificatesresolvers.le.acme.dnschallenge.delaybeforecheck=20"
+    environment:
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
+      - CLOUDFLARE_API_TOKEN=${CF_DNS_API_TOKEN}
+      - ACME_EMAIL=${ACME_EMAIL}
+    ports:
+      - "80:80"
+      - "8080:8080"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./letsencrypt:/letsencrypt"
+    restart: unless-stopped
+  versitygw:
+    image: versity/versitygw
+    container_name: versitygw
+    command:
+      - "--access"
+      - "${VARSITYGW_USER}"
+      - "--secret"
+      - "${VARSITYGW_PASSWORD}"
+      - "posix"
+      - "/data"
+    ports:
+      - "7070:7070"
+    volumes:
+      - "/Volumes/Backup2/:/data"
+    restart: unless-stopped
+  
+  # omni:
+  #   container_name: omni
+  #   image: "ghcr.io/siderolabs/omni:${OMNI_IMG_TAG}"
+  #   devices:
+  #     - /dev/net/tun
+  #   volumes:
+  #     - ${ETCD_VOLUME_PATH}:/_out/etcd
+  #     - ${ETCD_ENCRYPTION_KEY}:/omni.asc
+  #     - ${TLS_CERT}:/tls.crt
+  #     - ${TLS_KEY}:/tls.key
+  #   # network_mode: "host"
+  #   cap_add:
+  #     - NET_ADMIN
+  #   ports:
+  #     - 50180:50180/udp   # Siderolink Wireguard
+  #   command: >
+  #     --account-id=${OMNI_ACCOUNT_UUID} 
+  #     --name=${NAME} 
+  #     --cert=/tls.crt
+  #     --key=/tls.key
+  #     --machine-api-cert=/tls.crt
+  #     --machine-api-key=/tls.key
+  #     --private-key-source='file:///omni.asc' 
+  #     --event-sink-port=${EVENT_SINK_PORT}
+  #     --bind-addr=${BIND_ADDR}
+  #     --machine-api-bind-addr=${MACHINE_API_BIND_ADDR}
+  #     --k8s-proxy-bind-addr=${K8S_PROXY_BIND_ADDR}
+  #     --advertised-api-url=${ADVERTISED_API_URL}
+  #     --advertised-kubernetes-proxy-url=${ADVERTISED_K8S_PROXY_URL}
+  #     --siderolink-api-advertised-url=${SIDEROLINK_ADVERTISED_API_URL}
+  #     --siderolink-wireguard-advertised-addr=${SIDEROLINK_WIREGUARD_ADVERTISED_ADDR}
+  #     --initial-users=${INITIAL_USER_EMAILS}
+  #     ${AUTH}
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.omni.rule=Host(`${OMNI_DOMAIN}`)"
+  #     - "traefik.http.routers.omni.entrypoints=websecure"
+  #     - "traefik.http.routers.omni.tls.certresolver=le"
+  #     - "traefik.http.services.omni.loadbalancer.server.port=8080"
+  #   volumes:
+  #     - ./omni:/_out
+  #     - ./omni/omni.asc:/omni.asc
+  #   networks:
+  #     - proxy
+
+networks:
+  proxy:
+    name: proxy

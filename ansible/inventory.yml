@@ -1,0 +1,12 @@
+all:
+  # ansible_ssh_private_key_file: /Users/victor/.ssh/personal
+  children:
+    node06:
+      hosts:
+        node06.fondevilla.io:
+          ansible_user: victor
+    mini:
+      hosts:
+        mini:
+          ansible_host: 10.1.0.107
+          ansible_user: victor

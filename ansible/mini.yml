@@ -1,0 +1,85 @@
+---
+- hosts: mini
+  gather_facts: yes
+  become: false
+  tasks:
+    - name: Ensure 'acme_email' variable is provided
+      ansible.builtin.assert:
+        that:
+          - acme_email is defined
+          - acme_email | length > 0
+        fail_msg: "Define 'acme_email' (ACME contact email) in inventory or group_vars."
+        success_msg: "acme_email provided."
+    - name: Install required packages with pip
+      pip:
+        name: 
+          - requests
+    - name: Configure the DNS name in Cloudflare
+      community.general.cloudflare_dns:
+        zone: fondevilla.io
+        record: mini
+        type: A
+        value: "{{ ansible_default_ipv4.address }}"
+        ttl: 3600
+        api_token: "{{ cloudflare_api_key }}"
+    - name: Ensure /Users/victor/docker/ exists
+      file:
+        path: /Users/victor/docker/
+        state: directory
+    - name: Ensure Omni data directory exists
+      file:
+        path: "{{ omni_etcd_volume_path | default('/Users/victor/docker/omni/etcd') }}"
+        state: directory
+        mode: '0755'
+    - name: Ensure letsencrypt directory exists
+      file:
+        path: /Users/victor/docker/letsencrypt
+        state: directory
+        mode: '0755'
+    - name: Ensure acme.json exists with secure permissions
+      ansible.builtin.file:
+        path: /Users/victor/docker/letsencrypt/acme.json
+        state: touch
+        mode: '0600'
+    - name: Copy docker-compose for mini
+      ansible.builtin.copy:
+        src: docker-compose/mini.yaml
+        dest: /Users/victor/docker/mini.yaml
+        mode: '0644'
+    - name: Render Compose .env (Traefik + Omni)
+      ansible.builtin.template:
+        src: templates/compose.env.j2
+        dest: /Users/victor/docker/.env
+        mode: '0600'
+    # - name: Stat Omni TLS cert/key and encryption key
+    #   ansible.builtin.stat:
+    #     path: "{{ item }}"
+    #   loop:
+    #     - "{{ omni_tls_cert_path | default('') }}"
+    #     - "{{ omni_tls_key_path | default('') }}"
+    #     - "{{ omni_etcd_encryption_key_path | default('') }}"
+    #   register: omni_keys
+    # - name: Fail if any Omni key/cert file missing
+    #   ansible.builtin.fail:
+    #     msg: "Required Omni file missing: {{ item.item }}"
+    #   when: item.item | length > 0 and (not item.stat.exists or item.stat.isdir)
+    #   loop: "{{ omni_keys.results }}"
+    - name: Check that host mount path exists
+      ansible.builtin.stat:
+        path: /Volumes/Backup2
+      register: backup2_stat
+    - name: Fail if host mount path missing
+      ansible.builtin.fail:
+        msg: "Host path /Volumes/Backup2 not found or not a directory"
+      when: not (backup2_stat.stat.exists and backup2_stat.stat.isdir)
+    - name: Run docker-compose for mini
+      community.docker.docker_compose_v2:
+        project_src: /Users/victor/docker/
+        files:
+          - mini.yaml
+        state: present
+        remove_orphans: yes
+        recreate: auto
+        timeout: 300
+      tags:
+        - docker
