@@ -5,7 +5,7 @@ repositories:
 releases:
   - name: home-assistant
     namespace: home-assistant
-    chart: charts/home-assistant
+    chart: home-assistant
     version: 13.4.2
     createNamespace: true
     values:
