@@ -3,6 +3,7 @@ kind: Kustomization
 namespace: external-dns
 
 resources:
-- externaldns.yaml
-- namespace.yaml
-- externalsecret.yaml
+- manifests/externaldns.yaml
+- manifests/namespace.yaml
+- manifests/externalsecret.yaml
+- manifests/mini.yaml
