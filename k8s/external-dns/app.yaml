@@ -10,7 +10,7 @@ spec:
     namespace: external-dns
   sources:
     - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
-      path: k8s/external-dns/
+      path: k8s/external-dns/manifests
       directory:
         recurse: true
       targetRevision: HEAD
