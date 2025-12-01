@@ -6,5 +6,5 @@ resources:
 
 # We need to patch the namespace and add the label pod-security.kubernetes.io/enforce=privileged to the namespace to allow the privileged pods to run
 patchesStrategicMerge:
-- namespace.yaml
-- configmap.yaml
+- resources/namespace.yaml
+- resources/configmap.yaml
