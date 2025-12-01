@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nas02
+  namespace: external-dns
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: nas02.fondevilla.io
+spec:
+  type: ExternalName
+  externalName: 10.1.0.4
