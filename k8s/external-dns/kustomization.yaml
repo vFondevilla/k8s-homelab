@@ -6,5 +6,4 @@ resources:
 - manifests/externaldns.yaml
 - manifests/namespace.yaml
 - manifests/externalsecret.yaml
-- manifests/mini.yaml
 - manifests/servicemonitor.yaml
