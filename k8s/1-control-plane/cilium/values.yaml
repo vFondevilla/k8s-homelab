@@ -1,0 +1,39 @@
+bgpControlPlane:
+  enabled: true
+cgroup:
+  autoMount:
+    enabled: false
+  hostRoot: /sys/fs/cgroup
+cluster:
+  name: control-plane
+gatewayAPI:
+  enableAlpn: true
+  enableAppProtocol: true
+  enabled: true
+ipam:
+  mode: kubernetes
+k8sServiceHost: 10.1.0.10
+k8sServicePort: 6443
+kubeProxyReplacement: true
+operator:
+  replicas: 1
+routingMode: tunnel
+securityContext:
+  capabilities:
+    ciliumAgent:
+    - CHOWN
+    - KILL
+    - NET_ADMIN
+    - NET_RAW
+    - IPC_LOCK
+    - SYS_ADMIN
+    - SYS_RESOURCE
+    - DAC_OVERRIDE
+    - FOWNER
+    - SETGID
+    - SETUID
+    cleanCiliumState:
+    - NET_ADMIN
+    - SYS_ADMIN
+    - SYS_RESOURCE
+tunnelProtocol: vxlan
