@@ -11,6 +11,9 @@ spec:
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
+    automated:
+      prune: true
+      selfHeal: true
   sources:
     - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
       path: k8s/ingress-nginx
