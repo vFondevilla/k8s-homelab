@@ -7,4 +7,4 @@ metadata:
     external-dns.alpha.kubernetes.io/hostname: nas02.fondevilla.io
 spec:
   type: ExternalName
-  externalName: 10.1.0.4
+  externalName: 10.1.1.4
