@@ -1,0 +1,42 @@
+repositories:
+  - name: zigbee2mqtt
+    url: https://charts.zigbee2mqtt.io
+
+releases:
+  - name: zigbee2mqtt-net
+    namespace: z2m
+    chart: zigbee2mqtt/zigbee2mqtt
+    version: 2.1.1
+    createNamespace: true
+    values:
+      -
+        image:
+          tag: 1.42.0
+        statefulset:
+          storage:
+            enabled: true
+            size: 2Gi
+            storageClassName: rook-ceph-block
+        zigbee2mqtt:
+          serial:
+            port: tcp://10.1.0.140:6638
+            adapter: ember
+            baudrate: 115200
+            advanced:
+              transmit_power: 20
+          permit_join: true
+          mqtt:
+            server: "mqtt://mosquitto.mosquitto.svc.cluster.local"
+          advanced:
+            channel: 25
+        ingress:
+          enabled: true
+          ingressClassName: nginx
+          hosts:
+            - host: zigbee2mqtt.apps.fondevilla.io
+              paths:
+                - path: /
+                  pathType: ImplementationSpecific
+                - path: /api
+                  pathType: ImplementationSpecific
+

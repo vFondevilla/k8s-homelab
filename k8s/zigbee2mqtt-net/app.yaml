@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: zigbee2mqtt-net
+  namespace: argocd
+spec:
+  destination:
+    namespace: z2m
+    server: https://kubernetes.default.svc
+  project: default
+  sources:
+    - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
+      path: k8s/zigbee2mqtt-net
+      directory:
+        recurse: true
+      targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      prune: false
+      selfHeal: true
+
