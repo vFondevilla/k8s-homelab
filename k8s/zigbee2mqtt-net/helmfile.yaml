@@ -16,7 +16,7 @@ releases:
           storage:
             enabled: true
             size: 2Gi
-            storageClassName: rook-ceph-block
+            storageClassName: manual
         zigbee2mqtt:
           serial:
             port: tcp://10.1.0.140:6638
