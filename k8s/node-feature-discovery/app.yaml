@@ -10,6 +10,10 @@ spec:
   sources:
     - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
       path: k8s/node-feature-discovery
-      directory:
-        recurse: true
       targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      prune: false
+      selfHeal: true
