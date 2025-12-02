@@ -9,15 +9,22 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   sources:
+    # (1) Chart source pinned to exact version
+    - repoURL: https://charts.zigbee2mqtt.io
+      chart: zigbee2mqtt
+      targetRevision: 2.1.1
+      helm:
+        releaseName: zigbee2mqtt-net
+        valueFiles:
+          - $values/values.yaml
+    # (2) Git source providing values.yaml
     - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
-      path: k8s/zigbee2mqtt-net
-      directory:
-        recurse: true
       targetRevision: HEAD
+      path: k8s/zigbee2mqtt-net
+      ref: values
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
     automated:
       prune: false
       selfHeal: true
-
