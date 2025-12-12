@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: meshcentral
+  namespace: argocd 
+spec:
+  destination:
+    namespace: meshcentral
+    server: https://kubernetes.default.svc
+  project: default
+  sources:
+  - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
+    path: k8s/meshcentral
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
