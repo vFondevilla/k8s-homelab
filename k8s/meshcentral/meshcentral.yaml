@@ -138,4 +138,3 @@ spec:
       targetPort: 4433
       protocol: TCP
   # externalTrafficPolicy: Local
-  loadBalancerIP: 10.1.0.205
