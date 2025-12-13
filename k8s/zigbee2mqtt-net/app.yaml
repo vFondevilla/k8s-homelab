@@ -10,8 +10,8 @@ spec:
   project: default
   sources:
     # # (1) Git source providing values.yaml (listed first for multi-source resolution)
-    # - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
-    #   path: k8s/zigbee2mqtt-net
+    - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
+      path: k8s/zigbee2mqtt-net
     #   ref: values
     # (2) Chart source pinned to exact version
     - repoURL: https://charts.zigbee2mqtt.io
