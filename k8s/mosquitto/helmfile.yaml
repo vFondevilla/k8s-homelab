@@ -14,10 +14,11 @@ releases:
           externalTrafficPolicy: ""
           type: LoadBalancer
           annotations:
-            metallb.universe.tf/allow-shared-ip: mosquitto
-            metallb.universe.tf/ladBalancerIPs: 10.1.0.204
+            # metallb.universe.tf/allow-shared-ip: mosquitto
+            # metallb.universe.tf/ladBalancerIPs: 10.1.0.204
+            external-dns.alpha.kubernetes.io/hostname: mosquitto.apps.fondevilla.io
         persistence:
           enabled: true
           storageClass: manual
-        nodeSelector:
-          feature.node.kubernetes.io/usb-ff_10c4_ea60.present: "true"
+        # nodeSelector:
+          # feature.node.kubernetes.io/usb-ff_10c4_ea60.present: "true"
