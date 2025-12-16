@@ -1,0 +1,5 @@
+OVN_DIR: /var/lib/ovn
+OPENVSWITCH_DIR: /var/lib/ovn
+DISABLE_MODULES_MANAGEMENT: true
+cni_conf:
+  MOUNT_LOCAL_BIN_DIR: false
