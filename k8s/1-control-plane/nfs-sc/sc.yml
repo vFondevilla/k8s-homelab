@@ -10,6 +10,7 @@ parameters:
   share: /mnt/SSD/k8s_static_pv
 reclaimPolicy: Delete
 volumeBindingMode: Immediate
+allowVolumeExpansion: true
 mountOptions:
   - nfsvers=4.1
   - nolock
