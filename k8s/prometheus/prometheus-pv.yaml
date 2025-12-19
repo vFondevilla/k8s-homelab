@@ -11,10 +11,10 @@ spec:
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Recycle
-  storageClassName: manual
+  storageClassName: nfs-csi
   mountOptions:
     - hard
     - nfsvers=4.1
   nfs:
-    path: /mnt/SSD/k8s_static_pv/prometheus
+    path: /mnt/SSD/k8s_static_volumes/prometheus
     server: 10.1.0.4
