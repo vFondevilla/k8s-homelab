@@ -21,11 +21,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
   n8n:
-    environment:
-      - DOMAIN_NAME=fondevilla.io
-      - SUBDOMAIN=n8n
-      - GENERIC_TIMEZONE=Europe/Madrid
-      - SSL_EMAIL=n8n@fondevilla.io
     image: docker.n8n.io/n8nio/n8n
     restart: always
     ports:
@@ -46,6 +41,10 @@ services:
       - traefik.http.middlewares.n8n.headers.STSPreload=true
       - traefik.http.routers.n8n.middlewares=n8n@docker
     environment:
+      - DOMAIN_NAME=fondevilla.io
+      - SUBDOMAIN=n8n
+      - GENERIC_TIMEZONE=Europe/Madrid
+      - SSL_EMAIL=n8n@fondevilla.io
       - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
       - N8N_HOST=${SUBDOMAIN}.${DOMAIN_NAME}
       - N8N_PORT=5678
