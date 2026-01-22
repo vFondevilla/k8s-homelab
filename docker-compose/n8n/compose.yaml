@@ -1,63 +1,41 @@
 services:
-  traefik:
-    image: "traefik"
-    restart: always
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.mytlschallenge.acme.tlschallenge=true"
-      - "--certificatesresolvers.mytlschallenge.acme.email=${SSL_EMAIL}"
-      - "--certificatesresolvers.mytlschallenge.acme.storage=/letsencrypt/acme.json"
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - traefik_data:/letsencrypt
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-
   n8n:
     image: docker.n8n.io/n8nio/n8n
     restart: always
-    ports:
-      - "127.0.0.1:5678:5678"
+    networks:
+      - tunnel
     labels:
+      # Webhook router (public via tunnel) - only webhook paths
       - traefik.enable=true
-      - traefik.http.routers.n8n.rule=Host(`n8n.fondevilla.io`)
-      - traefik.http.routers.n8n.tls=true
-      - traefik.http.routers.n8n.entrypoints=web,websecure
-      - traefik.http.routers.n8n.tls.certresolver=mytlschallenge
-      - traefik.http.middlewares.n8n.headers.SSLRedirect=true
-      - traefik.http.middlewares.n8n.headers.STSSeconds=315360000
-      - traefik.http.middlewares.n8n.headers.browserXSSFilter=true
-      - traefik.http.middlewares.n8n.headers.contentTypeNosniff=true
-      - traefik.http.middlewares.n8n.headers.forceSTSHeader=true
-      - traefik.http.middlewares.n8n.headers.SSLHost=fondevilla.io
-      - traefik.http.middlewares.n8n.headers.STSIncludeSubdomains=true
-      - traefik.http.middlewares.n8n.headers.STSPreload=true
-      - traefik.http.routers.n8n.middlewares=n8n@docker
+      - traefik.http.routers.n8n-webhook.rule=Host(`n8n-webhook.fondevilla.io`) && (PathPrefix(`/webhook/`) || PathPrefix(`/webhook-test/`))
+      - traefik.http.routers.n8n-webhook.entrypoints=web
+      - traefik.http.routers.n8n-webhook.service=n8n
+      # GUI router (Tailnet only) - full access
+      - traefik.http.routers.n8n-gui.rule=Host(`n8n.fondevilla.io`)
+      - traefik.http.routers.n8n-gui.entrypoints=websecure
+      - traefik.http.routers.n8n-gui.tls=true
+      - traefik.http.routers.n8n-gui.tls.certresolver=letsencrypt
+      - traefik.http.routers.n8n-gui.service=n8n
+      # Service definition
+      - traefik.http.services.n8n.loadbalancer.server.port=5678
     environment:
-      - DOMAIN_NAME=fondevilla.io
-      - SUBDOMAIN=n8n
-      - GENERIC_TIMEZONE=Europe/Madrid
-      - SSL_EMAIL=n8n@fondevilla.io
-      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
       - N8N_HOST=n8n.fondevilla.io
       - N8N_PORT=5678
       - N8N_PROTOCOL=https
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
       - N8N_RUNNERS_ENABLED=true
       - NODE_ENV=production
-      - WEBHOOK_URL=https://n8n.fondevilla.io/
-      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
-      - TZ=${GENERIC_TIMEZONE}
+      - WEBHOOK_URL=https://n8n-webhook.fondevilla.io/
+      - GENERIC_TIMEZONE=Europe/Madrid
+      - TZ=Europe/Madrid
     volumes:
       - n8n_data:/home/node/.n8n
       - ./local-files:/files
 
 volumes:
   n8n_data:
-  traefik_data:
+
+networks:
+  tunnel:
+    name: cloudflared
+    external: true
