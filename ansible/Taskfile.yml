@@ -1,0 +1,22 @@
+version: "3"
+
+tasks:
+  default:
+    desc: Run VPS playbook (full provisioning)
+    cmds:
+      - ansible-playbook -i inventory.yml vps.yml
+
+  vps:
+    desc: Run VPS playbook (full provisioning)
+    cmds:
+      - ansible-playbook -i inventory.yml vps.yml
+
+  vps:stacks:
+    desc: Run VPS playbook skipping provisioning (stacks only)
+    cmds:
+      - ansible-playbook -i inventory.yml vps.yml --skip-tags provisioning
+
+  vps:provision:
+    desc: Run VPS playbook provisioning only
+    cmds:
+      - ansible-playbook -i inventory.yml vps.yml --tags provisioning

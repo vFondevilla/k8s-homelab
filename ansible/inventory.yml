@@ -10,3 +10,8 @@ all:
         mini:
           ansible_host: 10.1.0.107
           ansible_user: victor
+    vps:
+      hosts:
+        vps:
+          ansible_host: 100.108.125.31
+          ansible_user: root

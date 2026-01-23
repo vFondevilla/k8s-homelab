@@ -1,0 +1,412 @@
+---
+- name: Configure VPS with Docker
+  hosts: vps
+  gather_facts: true
+  become: false
+  tasks:
+    - name: Fetch SSH keys from GitHub and add to authorized_keys
+      ansible.posix.authorized_key:
+        user: root
+        state: present
+        key: https://github.com/vfondevilla.keys
+      tags: [provisioning]
+
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+      tags: [provisioning]
+
+    - name: Install required packages
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+      tags: [provisioning]
+
+    - name: Create keyrings directory
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+      tags: [provisioning]
+
+    - name: Download Docker GPG key
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: '0644'
+      tags: [provisioning]
+
+    - name: Add Docker repository
+      ansible.builtin.apt_repository:
+        repo: >-
+          deb [arch={{ ansible_architecture | replace('x86_64', 'amd64') }}
+          signed-by=/etc/apt/keyrings/docker.asc]
+          https://download.docker.com/linux/ubuntu
+          {{ ansible_distribution_release }} stable
+        state: present
+        filename: docker
+      tags: [provisioning]
+
+    - name: Install Docker packages
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: true
+      tags: [provisioning]
+
+    - name: Ensure Docker service is started and enabled
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+        enabled: true
+      tags: [provisioning]
+
+    - name: Verify Docker installation
+      ansible.builtin.command: docker --version
+      register: docker_version
+      changed_when: false
+      tags: [provisioning]
+
+    - name: Verify Docker Compose installation
+      ansible.builtin.command: docker compose version
+      register: compose_version
+      changed_when: false
+      tags: [provisioning]
+
+    - name: Display versions
+      ansible.builtin.debug:
+        msg:
+          - "Docker: {{ docker_version.stdout }}"
+          - "Docker Compose: {{ compose_version.stdout }}"
+      tags: [provisioning]
+
+    # Cloudflare Tunnel Setup
+    - name: Get Cloudflare Tunnel API token from 1Password
+      ansible.builtin.set_fact:
+        cf_tunnel_api_token: "{{ lookup('community.general.onepassword', 'Cloudflare Tunnel VPS', field='credential', vault='Lab') }}"
+
+    - name: Check if Cloudflare Tunnel already exists
+      ansible.builtin.uri:
+        url: "https://api.cloudflare.com/client/v4/accounts/2b25817e2dc1c6293627c2ba85435bd2/cfd_tunnel?name=vps-tunnel"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ cf_tunnel_api_token }}"
+        status_code: [200]
+      register: existing_tunnels
+      delegate_to: localhost
+
+    - name: Create Cloudflare Tunnel
+      ansible.builtin.uri:
+        url: "https://api.cloudflare.com/client/v4/accounts/2b25817e2dc1c6293627c2ba85435bd2/cfd_tunnel"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ cf_tunnel_api_token }}"
+        body_format: json
+        body:
+          name: "vps-tunnel"
+          tunnel_secret: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters,digits') | b64encode }}"
+          config_src: "cloudflare"
+        status_code: [200]
+      register: created_tunnel
+      delegate_to: localhost
+      when: existing_tunnels.json.result | length == 0
+
+    - name: Set tunnel ID fact
+      ansible.builtin.set_fact:
+        tunnel_id: "{{ (created_tunnel.json.result.id if created_tunnel is not skipped else existing_tunnels.json.result[0].id) }}"
+
+    - name: Get tunnel run token
+      ansible.builtin.uri:
+        url: "https://api.cloudflare.com/client/v4/accounts/2b25817e2dc1c6293627c2ba85435bd2/cfd_tunnel/{{ tunnel_id }}/token"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ cf_tunnel_api_token }}"
+        status_code: [200]
+      register: tunnel_token_response
+      delegate_to: localhost
+
+    - name: Set tunnel run token fact
+      ansible.builtin.set_fact:
+        tunnel_token: "{{ tunnel_token_response.json.result }}"
+
+    - name: Configure tunnel ingress for webhook proxy
+      ansible.builtin.uri:
+        url: "https://api.cloudflare.com/client/v4/accounts/2b25817e2dc1c6293627c2ba85435bd2/cfd_tunnel/{{ tunnel_id }}/configurations"
+        method: PUT
+        headers:
+          Authorization: "Bearer {{ cf_tunnel_api_token }}"
+        body_format: json
+        body:
+          config:
+            ingress:
+              - hostname: "n8n-webhook.fondevilla.io"
+                service: "http://traefik:80"
+              - service: "http_status:404"
+        status_code: [200]
+      delegate_to: localhost
+
+    - name: Check if tunnel run token exists in 1Password
+      ansible.builtin.command:
+        cmd: op item get "Cloudflare Tunnel VPS Run Token" --vault "Lab"
+      delegate_to: localhost
+      register: op_item_check
+      changed_when: false
+      failed_when: false
+
+    - name: Create tunnel run token in 1Password
+      ansible.builtin.shell:
+        cmd: >
+          op item create
+          --category "API Credential"
+          --vault "Lab"
+          --title "Cloudflare Tunnel VPS Run Token"
+          "credential={{ tunnel_token }}"
+          < /dev/null
+      delegate_to: localhost
+      when: op_item_check.rc != 0
+
+    - name: Update tunnel run token in 1Password
+      ansible.builtin.shell:
+        cmd: >
+          op item edit "Cloudflare Tunnel VPS Run Token"
+          --vault "Lab"
+          "credential={{ tunnel_token }}"
+          < /dev/null
+      delegate_to: localhost
+      when: op_item_check.rc == 0
+
+    - name: Ensure DNS A record for n8n.fondevilla.io (Tailnet only)
+      community.general.cloudflare_dns:
+        zone: fondevilla.io
+        record: n8n
+        type: A
+        value: "100.108.125.31"
+        proxied: false
+        api_token: "{{ cloudflare_api_key }}"
+        state: present
+        solo: true
+      delegate_to: localhost
+
+    - name: Ensure DNS CNAME record for n8n-webhook.fondevilla.io (public webhooks)
+      community.general.cloudflare_dns:
+        zone: fondevilla.io
+        record: n8n-webhook
+        type: CNAME
+        value: "{{ tunnel_id }}.cfargotunnel.com"
+        proxied: true
+        api_token: "{{ cloudflare_api_key }}"
+        state: present
+        solo: true
+      delegate_to: localhost
+
+    - name: Create Portainer data directory
+      ansible.builtin.file:
+        path: /opt/portainer/data
+        state: directory
+        mode: '0755'
+      tags: [provisioning]
+
+    - name: Create Portainer docker-compose file
+      ansible.builtin.copy:
+        dest: /opt/portainer/docker-compose.yml
+        mode: '0644'
+        content: |
+          services:
+            portainer:
+              image: portainer/portainer-ce:latest
+              container_name: portainer
+              restart: always
+              ports:
+                - "9443:9443"
+                - "9000:9000"
+              volumes:
+                - /var/run/docker.sock:/var/run/docker.sock
+                - /opt/portainer/data:/data
+      tags: [provisioning]
+
+    - name: Deploy Portainer
+      community.docker.docker_compose_v2:
+        project_src: /opt/portainer
+        state: present
+      tags: [provisioning]
+
+    - name: Wait for Portainer to be ready
+      ansible.builtin.uri:
+        url: "https://127.0.0.1:9443/api/system/status"
+        method: GET
+        validate_certs: false
+        status_code: [200]
+      register: portainer_status
+      until: portainer_status.status == 200
+      retries: 30
+      delay: 2
+      tags: [provisioning]
+
+    - name: Check if admin user already exists
+      ansible.builtin.uri:
+        url: "https://127.0.0.1:9443/api/users/admin/check"
+        method: GET
+        validate_certs: false
+        status_code: [204, 404]
+      register: admin_check
+      tags: [provisioning]
+
+    - name: Create initial admin user
+      ansible.builtin.uri:
+        url: "https://127.0.0.1:9443/api/users/admin/init"
+        method: POST
+        body_format: json
+        body:
+          Username: "admin"
+          Password: "{{ portainer_admin_password }}"
+        validate_certs: false
+        status_code: [200]
+      when: admin_check.status == 404
+      tags: [provisioning]
+
+    - name: Authenticate to Portainer API
+      ansible.builtin.uri:
+        url: "https://127.0.0.1:9443/api/auth"
+        method: POST
+        body_format: json
+        body:
+          Username: "admin"
+          Password: "{{ portainer_admin_password }}"
+        validate_certs: false
+        status_code: [200]
+      register: portainer_auth
+
+    - name: Get existing environments
+      ansible.builtin.uri:
+        url: "https://127.0.0.1:9443/api/endpoints"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ portainer_auth.json.jwt }}"
+        validate_certs: false
+        status_code: [200]
+      register: existing_endpoints
+      tags: [provisioning]
+
+    - name: Create local Docker environment
+      ansible.builtin.uri:
+        url: "https://127.0.0.1:9443/api/endpoints"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ portainer_auth.json.jwt }}"
+        body_format: form-urlencoded
+        body:
+          Name: "local"
+          EndpointCreationType: "1"
+        validate_certs: false
+        status_code: [200, 201]
+      register: created_endpoint
+      when: existing_endpoints.json | length == 0
+      tags: [provisioning]
+
+    - name: Get environments after creation
+      ansible.builtin.uri:
+        url: "https://127.0.0.1:9443/api/endpoints"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ portainer_auth.json.jwt }}"
+        validate_certs: false
+        status_code: [200]
+      register: all_endpoints
+
+    - name: Set endpoint ID fact
+      ansible.builtin.set_fact:
+        portainer_endpoint_id: "{{ all_endpoints.json[0].Id }}"
+
+    - name: Get tunnel run token from 1Password (for stack deployment)
+      ansible.builtin.set_fact:
+        tunnel_token: "{{ lookup('community.general.onepassword', 'Cloudflare Tunnel VPS Run Token', field='credential', vault='Lab') }}"
+      when: tunnel_token is not defined
+
+    - name: Get existing stacks
+      ansible.builtin.uri:
+        url: "https://127.0.0.1:9443/api/stacks"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ portainer_auth.json.jwt }}"
+        validate_certs: false
+        status_code: [200]
+      register: existing_stacks
+
+    - name: Create cloudflared GitOps stack
+      ansible.builtin.uri:
+        url: "https://127.0.0.1:9443/api/stacks/create/standalone/repository?endpointId={{ portainer_endpoint_id }}"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ portainer_auth.json.jwt }}"
+        body_format: json
+        body:
+          name: "cloudflared"
+          repositoryURL: "https://github.com/vFondevilla/k8s-homelab"
+          repositoryReferenceName: "refs/heads/main"
+          composeFile: "docker-compose/cloudflared/compose.yaml"
+          env:
+            - name: "TUNNEL_TOKEN"
+              value: "{{ tunnel_token }}"
+            - name: "CF_DNS_API_TOKEN"
+              value: "{{ cloudflare_api_key }}"
+          autoUpdate:
+            interval: "5m"
+            webhook: ""
+        validate_certs: false
+        status_code: [200, 201]
+        timeout: 120
+      when: existing_stacks.json | selectattr('Name', 'equalto', 'cloudflared') | list | length == 0
+
+    - name: Wait for cloudflared network to be created
+      ansible.builtin.command: docker network inspect cloudflared
+      register: network_check
+      until: network_check.rc == 0
+      retries: 30
+      delay: 2
+      changed_when: false
+
+    - name: Create n8n GitOps stack
+      ansible.builtin.uri:
+        url: "https://127.0.0.1:9443/api/stacks/create/standalone/repository?endpointId={{ portainer_endpoint_id }}"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ portainer_auth.json.jwt }}"
+        body_format: json
+        body:
+          name: "n8n"
+          repositoryURL: "https://github.com/vFondevilla/k8s-homelab"
+          repositoryReferenceName: "refs/heads/main"
+          composeFile: "docker-compose/n8n/compose.yaml"
+          autoUpdate:
+            interval: "5m"
+            webhook: ""
+        validate_certs: false
+        status_code: [200, 201]
+        timeout: 120
+      when: existing_stacks.json | selectattr('Name', 'equalto', 'n8n') | list | length == 0
+
+    - name: Display deployment info
+      ansible.builtin.debug:
+        msg:
+          - "VPS configured successfully!"
+          - ""
+          - "Portainer: https://100.108.125.31:9443"
+          - ""
+          - "n8n GUI: https://n8n.fondevilla.io (Tailnet only)"
+          - "n8n Webhooks: https://n8n-webhook.fondevilla.io/webhook/* (public)"
+          - ""
+          - "Stacks deployed:"
+          - "  - cloudflared (tunnel + traefik)"
+          - "  - n8n (workflow automation)"
+          - ""
+          - "GitOps: Auto-update every 5m from https://github.com/vFondevilla/k8s-homelab"
