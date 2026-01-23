@@ -27,8 +27,8 @@ services:
       - "--certificatesresolvers.letsencrypt.acme.email=admin@fondevilla.io"
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
     environment:
-      - CF_API_EMAIL=victor@fondevilla.io
-      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
+      - CLOUDFLARE_EMAIL=victor@fondevilla.io
+      - CLOUDFLARE_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
     ports:
       - "80:80"
       - "443:443"
