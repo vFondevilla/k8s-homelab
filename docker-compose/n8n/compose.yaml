@@ -32,6 +32,7 @@ services:
       - N8N_RUNNERS_AUTH_TOKEN=${N8N_RUNNERS_GRANT_TOKEN}
       - N8N_RUNNERS_BROKER_LISTEN_ADDRESS=0.0.0.0
       - N8N_NATIVE_PYTHON_RUNNER=true
+      - N8N_DIAGNOSTICS_ENABLED=false
       - NODE_ENV=production
       - WEBHOOK_URL=https://n8n-webhook.fondevilla.io/
       - GENERIC_TIMEZONE=Europe/Madrid
