@@ -20,6 +20,9 @@ services:
       - traefik.http.routers.n8n-gui.tls=true
       - traefik.http.routers.n8n-gui.tls.certresolver=letsencrypt
       - traefik.http.routers.n8n-gui.service=n8n
+      # WebSocket support - increase timeouts for long-lived connections
+      - traefik.http.services.n8n.loadbalancer.server.scheme=http
+      - traefik.http.services.n8n.loadbalancer.responseforwarding.flushinterval=100ms
       # Service definition
       - traefik.http.services.n8n.loadbalancer.server.port=5678
     environment:
