@@ -52,7 +52,7 @@ services:
       - N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT=150
       - N8N_RUNNERS_STDLIB_ALLOW="json,re"
     volumes:
-      - ./runner-config.json:/etc/n8n-task-runners.json:ro
+      - /opt/n8n/runner-config.json:/etc/n8n-task-runners.json:ro
 
 volumes:
   n8n_data:
