@@ -39,6 +39,7 @@ services:
       - WEBHOOK_URL=https://n8n-webhook.fondevilla.io/
       - GENERIC_TIMEZONE=Europe/Madrid
       - TZ=Europe/Madrid
+      - N8N_LOG_LEVEL=debug
     volumes:
       - n8n_data:/home/node/.n8n
       - ./local-files:/files
