@@ -2,4 +2,5 @@ cluster:
   name: workload-cluster
 k8sServiceHost: k8s.fondevilla.io
 k8sServicePort: 6443
-exclusive: false
+cni:
+  exclusive: false
