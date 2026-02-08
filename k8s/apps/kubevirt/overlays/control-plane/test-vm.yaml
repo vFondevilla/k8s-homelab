@@ -3,6 +3,7 @@ apiVersion: kubevirt.io/v1
 kind: VirtualMachine
 metadata:
   name: fedora-vm
+  namespace: kubevirt
 spec:
   running: false
   template:
