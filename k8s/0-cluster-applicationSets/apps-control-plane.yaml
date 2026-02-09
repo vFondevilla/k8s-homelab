@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: apps-control-plane
+  namespace: argocd
+spec:
+  goTemplate: true
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  cluster: control-plane
+          - git:
+              repoURL: git@github.com:vFondevilla/k8s-homelab.git
+              revision: main
+              directories:
+                - path: k8s/apps/*/overlays/control-plane
+  template:
+    metadata:
+      name: '{{.name}}-{{ index (splitList "/" .path.path) 2 }}'
+    spec:
+      project: default
+      destination:
+        server: "{{.server}}"
+      source:
+        repoURL: git@github.com:vFondevilla/k8s-homelab.git
+        targetRevision: main
+        path: "{{.path.path}}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+
