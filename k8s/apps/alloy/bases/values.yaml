@@ -1,0 +1,76 @@
+alloy:
+  configMap:
+    content: |-
+      // Discover all pods in the cluster
+      discovery.kubernetes "pods" {
+        role = "pod"
+      }
+
+      // Relabel to extract useful metadata
+      discovery.relabel "pods" {
+        targets = discovery.kubernetes.pods.targets
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_controller_name"]
+          regex         = "([0-9a-z-.]+?)(-[0-9a-f]{8,10})?"
+          target_label  = "__tmp_controller_name"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name", "__meta_kubernetes_pod_label_app", "__tmp_controller_name", "__meta_kubernetes_pod_name"]
+          regex         = "^;*([^;]+)(;.*)?$"
+          target_label  = "app"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_instance", "__meta_kubernetes_pod_label_release"]
+          regex         = "^;*([^;]+)(;.*)?$"
+          target_label  = "instance"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_component", "__meta_kubernetes_pod_label_component"]
+          regex         = "^;*([^;]+)(;.*)?$"
+          target_label  = "component"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_node_name"]
+          target_label  = "node"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          target_label  = "namespace"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_name"]
+          target_label  = "pod"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_container_name"]
+          target_label  = "container"
+        }
+      }
+
+      // Collect logs from discovered pods
+      loki.source.kubernetes "pods" {
+        targets    = discovery.relabel.pods.output
+        forward_to = [loki.process.pods.receiver]
+      }
+
+      // Process and add labels
+      loki.process "pods" {
+        forward_to = [loki.write.default.receiver]
+
+        stage.cri {}
+      }
+
+      // Ship logs to Loki
+      loki.write "default" {
+        endpoint {
+          url = "http://loki.loki.svc.cluster.local:3100/loki/api/v1/push"
+        }
+      }
