@@ -4,6 +4,7 @@ namespace: loki
 resources:
   - namespace.yaml
   - external-secret.yaml
+  - configmap.yaml
 helmCharts:
   - name: loki
     repo: https://grafana.github.io/helm-charts
