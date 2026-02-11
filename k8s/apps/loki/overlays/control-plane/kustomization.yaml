@@ -2,12 +2,10 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ../../bases
-patches:
-  - patch: |-
-      apiVersion: v1
-      kind: ConfigMap
-      metadata:
-        name: loki-minio-config
-        namespace: loki
-      data:
-        MINIO_ENDPOINT: "10.1.0.4:9000"
+helmCharts:
+  - name: loki
+    repo: https://grafana.github.io/helm-charts
+    version: 6.51.0
+    releaseName: loki
+    namespace: loki
+    valuesFile: values.yaml
