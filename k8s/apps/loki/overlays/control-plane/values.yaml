@@ -1,20 +1,5 @@
 deploymentMode: SingleBinary
 
-global:
-  extraArgs:
-    - -config.expand-env=true
-  extraEnv:
-    - name: ACCESS_KEY_ID
-      valueFrom:
-        secretKeyRef:
-          name: loki-minio-secret
-          key: accessKeyId
-    - name: SECRET_ACCESS_KEY
-      valueFrom:
-        secretKeyRef:
-          name: loki-minio-secret
-          key: secretAccessKey
-
 loki:
   auth_enabled: false
   commonConfig:
@@ -47,6 +32,19 @@ singleBinary:
   persistence:
     enabled: true
     size: 10Gi
+  extraArgs:
+    - -config.expand-env=true
+  extraEnv:
+    - name: ACCESS_KEY_ID
+      valueFrom:
+        secretKeyRef:
+          name: loki-minio-secret
+          key: accessKeyId
+    - name: SECRET_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          name: loki-minio-secret
+          key: secretAccessKey
 
 chunksCache:
   enabled: false
