@@ -6,7 +6,7 @@ releases:
   - name: external-secrets
     namespace: external-secrets
     chart: charts-external-secrets-io/external-secrets
-    version: 0.11.0
+    version: 0.20.4
     createNamespace: true
     values:
       -
