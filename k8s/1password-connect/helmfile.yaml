@@ -6,6 +6,6 @@ releases:
   - name: connect
     namespace: 1p
     chart: connect-helm-charts/connect
-    version: 1.17.0
+    version: 2.3.0
     createNamespace: true
     values:
