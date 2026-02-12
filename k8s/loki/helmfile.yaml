@@ -6,7 +6,7 @@ releases:
   - name: loki
     namespace: loki
     chart: helm-charts/loki
-    version: 6.24.0
+    version: 6.53.0
     createNamespace: true
     values:
       -
