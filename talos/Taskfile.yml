@@ -1,15 +1,19 @@
 # https://taskfile.dev
 version: "3"
-vars:
-    GREETING: Hello, World!
 tasks:
     default:
         cmds:
-            - echo "{{.GREETING}}"
+            - task --list
         silent: true
-    encrypt:
+
+    gen-control-cluster-v2:
+        desc: Generate Talos configs for control-cluster-v2 from encrypted secrets bundle
         cmds:
-            - find ./*/* -type f -exec sops encrypt -i {} \;
-    decrypt:
-        cmds:
-            - find ./*/* -type f -exec sops decrypt -i {} \;
+            - >-
+                sops exec-file control-cluster-v2/secrets.yaml
+                'talosctl gen config control-plane https://10.1.0.10:6443
+                --with-secrets {}
+                --config-patch-control-plane @control-cluster-v2/patches/controlplane.yaml
+                --output-dir control-cluster-v2
+                --force'
+            - cat control-cluster-v2/patches/extensions/*.yaml >> control-cluster-v2/controlplane.yaml
