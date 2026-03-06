@@ -1,0 +1,72 @@
+machine:
+    kubelet:
+        image: ghcr.io/siderolabs/kubelet:v1.34.1
+        defaultRuntimeSeccompProfileEnabled: true
+        disableManifestsDirectory: true
+    install:
+        disk: /dev/sda
+        image: ghcr.io/siderolabs/installer:v1.12.4
+        wipe: true
+    features:
+        rbac: true
+        stableHostname: true
+        apidCheckExtKeyUsage: true
+        diskQuotaSupport: true
+        kubePrism:
+            enabled: true
+            port: 7445
+        hostDNS:
+            enabled: true
+            forwardKubeDNSToHost: true
+    nodeLabels:
+        node.kubernetes.io/exclude-from-external-load-balancers: ""
+cluster:
+    clusterName: control-plane
+    network:
+        dnsDomain: cluster.local
+        podSubnets:
+            - 10.244.0.0/16
+        serviceSubnets:
+            - 10.96.0.0/12
+        cni:
+            name: none
+    apiServer:
+        image: registry.k8s.io/kube-apiserver:v1.34.1
+        certSANs:
+            - 10.1.0.10
+        disablePodSecurityPolicy: true
+        admissionControl:
+            - name: PodSecurity
+              configuration:
+                apiVersion: pod-security.admission.config.k8s.io/v1alpha1
+                kind: PodSecurityConfiguration
+                defaults:
+                    audit: restricted
+                    audit-version: latest
+                    enforce: baseline
+                    enforce-version: latest
+                    warn: restricted
+                    warn-version: latest
+                exemptions:
+                    namespaces:
+                        - kube-system
+                    runtimeClasses: []
+                    usernames: []
+        auditPolicy:
+            apiVersion: audit.k8s.io/v1
+            kind: Policy
+            rules:
+                - level: Metadata
+    controllerManager:
+        image: registry.k8s.io/kube-controller-manager:v1.34.1
+    proxy:
+        disabled: true
+    scheduler:
+        image: registry.k8s.io/kube-scheduler:v1.34.1
+    discovery:
+        enabled: true
+        registries:
+            kubernetes:
+                disabled: true
+            service: {}
+    allowSchedulingOnControlPlanes: true

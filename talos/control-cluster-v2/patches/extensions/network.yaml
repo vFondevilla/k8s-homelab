@@ -1,0 +1,20 @@
+---
+apiVersion: v1alpha1
+kind: LinkConfig
+name: eno4
+mtu: 9000
+up: true
+addresses:
+    - address: 10.1.0.10/24
+routes:
+    - gateway: 10.1.0.1
+---
+apiVersion: v1alpha1
+kind: VLANConfig
+name: eno4.7
+vlanID: 7
+vlanMode: 802.1q
+parent: eno4
+up: true
+addresses:
+    - address: 10.3.0.10/24
