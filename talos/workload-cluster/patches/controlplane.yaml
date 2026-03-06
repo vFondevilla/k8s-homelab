@@ -1,0 +1,79 @@
+machine:
+    kubelet:
+        image: ghcr.io/siderolabs/kubelet:v1.32.0
+        defaultRuntimeSeccompProfileEnabled: true
+        disableManifestsDirectory: true
+    network:
+        interfaces:
+            - interface: enp91s0
+              dhcp: true
+              vip:
+                ip: 10.1.0.90
+    install:
+        diskSelector:
+            size: '<= 256GB'
+        image: ghcr.io/siderolabs/installer:v1.11.0
+        wipe: true
+    features:
+        rbac: true
+        stableHostname: true
+        apidCheckExtKeyUsage: true
+        diskQuotaSupport: true
+        kubePrism:
+            enabled: true
+            port: 7445
+        hostDNS:
+            enabled: true
+            forwardKubeDNSToHost: true
+    nodeLabels:
+        node.kubernetes.io/exclude-from-external-load-balancers: ""
+cluster:
+    clusterName: homelab
+    network:
+        cni:
+            name: none
+        dnsDomain: cluster.local
+        podSubnets:
+            - 10.244.0.0/16
+        serviceSubnets:
+            - 10.96.0.0/12
+    apiServer:
+        image: registry.k8s.io/kube-apiserver:v1.32.0
+        certSANs:
+            - k8s.fondevilla.io
+        disablePodSecurityPolicy: true
+        admissionControl:
+            - name: PodSecurity
+              configuration:
+                apiVersion: pod-security.admission.config.k8s.io/v1alpha1
+                kind: PodSecurityConfiguration
+                defaults:
+                    audit: restricted
+                    audit-version: latest
+                    enforce: baseline
+                    enforce-version: latest
+                    warn: restricted
+                    warn-version: latest
+                exemptions:
+                    namespaces:
+                        - kube-system
+                    runtimeClasses: []
+                    usernames: []
+        auditPolicy:
+            apiVersion: audit.k8s.io/v1
+            kind: Policy
+            rules:
+                - level: Metadata
+    controllerManager:
+        image: registry.k8s.io/kube-controller-manager:v1.32.0
+    proxy:
+        image: registry.k8s.io/kube-proxy:v1.32.0
+    scheduler:
+        image: registry.k8s.io/kube-scheduler:v1.32.0
+    discovery:
+        enabled: true
+        registries:
+            kubernetes:
+                disabled: true
+            service: {}
+    allowSchedulingOnControlPlanes: true

@@ -1,0 +1,7 @@
+apiVersion: v1alpha1
+kind: UserVolumeConfig
+name: local-volume
+provisioning:
+  diskSelector:
+    match: disk.transport == 'nvme' && disk.dev_path.contains('nvme2n1')
+  minSize: 200GB

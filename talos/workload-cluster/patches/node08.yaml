@@ -1,0 +1,7 @@
+machine:
+    network:
+        hostname: node08.fondevilla.io
+        interfaces:
+            - interface: enp2s0f0np0
+              addresses:
+                - 10.254.0.18/24
