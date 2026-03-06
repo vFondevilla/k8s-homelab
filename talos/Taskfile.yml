@@ -6,6 +6,17 @@ tasks:
             - task --list
         silent: true
 
+    gen-workload-cluster:
+        desc: Generate Talos configs for workload-cluster from encrypted secrets bundle
+        cmds:
+            - >-
+                sops exec-file workload-cluster/secrets.yaml
+                'talosctl gen config homelab https://k8s.fondevilla.io:6443
+                --with-secrets {}
+                --config-patch-control-plane @workload-cluster/patches/controlplane.yaml
+                --output-dir workload-cluster
+                --force'
+
     gen-control-cluster-v2:
         desc: Generate Talos configs for control-cluster-v2 from encrypted secrets bundle
         cmds:
