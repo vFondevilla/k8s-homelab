@@ -41,3 +41,16 @@ velero/credentials
 
 # Exclude argocd-repositories.yaml
 argocd-repositories.yaml
+
+# Talos generated configs (secrets embedded - regenerate with: task gen-*)
+talos/control-cluster-v2/controlplane.yaml
+talos/control-cluster-v2/worker.yaml
+talos/control-cluster-v2/talosconfig
+talos/workload-cluster/controlplane.yaml
+talos/workload-cluster/worker.yaml
+talos/workload-cluster/talosconfig
+talos/workload-cluster/node07.yaml
+talos/workload-cluster/node08.yaml
+talos/workload-cluster/node09.yaml
+
+**/.claude/*
