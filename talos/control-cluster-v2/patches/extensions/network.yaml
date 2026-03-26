@@ -18,3 +18,13 @@ parent: eno4
 up: true
 addresses:
     - address: 10.3.0.10/24
+---
+apiVersion: v1alpha1
+kind: VLANConfig
+name: eno4.3
+vlanID: 3
+vlanMode: 802.1q
+parent: eno4
+up: true
+addresses:
+    - address: 10.1.1.10/24

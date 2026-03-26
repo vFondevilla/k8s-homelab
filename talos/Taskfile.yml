@@ -27,4 +27,5 @@ tasks:
                 --config-patch-control-plane @control-cluster-v2/patches/controlplane.yaml
                 --output-dir control-cluster-v2
                 --force'
-            - cat control-cluster-v2/patches/extensions/*.yaml >> control-cluster-v2/controlplane.yaml
+            - for f in control-cluster-v2/patches/extensions/*.yaml; do printf '\n---\n' >> control-cluster-v2/controlplane.yaml && cat "$f" >> control-cluster-v2/controlplane.yaml; done
+            - talosctl config endpoint 10.1.0.10 --talosconfig control-cluster-v2/talosconfig
