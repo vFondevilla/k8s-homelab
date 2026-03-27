@@ -1,0 +1,6 @@
+nfs:
+  server: 10.254.0.4
+  path: /mnt/SSD/k8s_static_pv/
+storageClass:
+  name: nfs-client
+  defaultClass: true
