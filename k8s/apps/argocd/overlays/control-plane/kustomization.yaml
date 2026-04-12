@@ -19,3 +19,8 @@ patches:
       version: v1
       kind: Service
       name: argocd-server
+  - path: argocd-cmd-params-cm.yaml
+    target:
+      version: v1
+      kind: ConfigMap
+      name: argocd-cmd-params-cm
