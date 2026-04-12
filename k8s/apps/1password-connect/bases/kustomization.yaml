@@ -3,10 +3,3 @@ kind: Kustomization
 namespace: 1p
 resources:
   - namespace.yaml
-secretGenerator:
-  - name: op-credentials
-    namespace: 1p
-    files:
-      - 1password-credentials.json
-    options:
-      disableNameSuffixHash: true
