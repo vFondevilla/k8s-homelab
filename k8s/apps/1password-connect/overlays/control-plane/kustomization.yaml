@@ -5,7 +5,7 @@ resources:
 helmCharts:
   - name: connect
     repo: https://1password.github.io/connect-helm-charts
-    version: 1.17.0
+    version: 1.17.1
     releaseName: connect
     namespace: 1p
     valuesFile: values.yaml
