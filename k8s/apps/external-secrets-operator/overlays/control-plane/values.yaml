@@ -1,0 +1,10 @@
+extendedMetricLabels: true
+serviceMonitor:
+  enabled: true
+certManager:
+  enabled: true
+  cert:
+    issuerRef:
+      name: letsencrypt-prod
+      kind: ClusterIssuer
+      group: cert-manager.io
