@@ -5,13 +5,16 @@ metadata:
   namespace: argocd
 spec:
   goTemplate: true
+  ignoreApplicationDifferences:
+    - jsonPointers:
+        - /spec/syncPolicy
   generators:
     - matrix:
         generators:
           - clusters:
               selector:
                 matchLabels:
-                  cluster: control-plane
+                  type: control-plane
           - git:
               repoURL: git@github.com:vFondevilla/k8s-homelab.git
               revision: main
