@@ -1,0 +1,23 @@
+services:
+  backrest:
+    container_name: backrest
+    environment:
+      - BACKREST_DATA=/data
+      - BACKREST_CONFIG=/config/config.json
+      - XDG_CACHE_HOME=/cache
+      - TMPDIR=/tmp
+      - TZ=Europe/Madrid
+    hostname: backrest
+    image: garethgeorge/backrest:latest
+    ports:
+      - '9898:9898'
+    restart: unless-stopped
+    volumes:
+      - /mnt/SSD/backrest/backrest/data:/data
+      - /mnt/SSD/backrest/backrest/config:/config
+      - /mnt/SSD/backrest/backrest/cache:/cache
+      - /mnt/SSD/backrest/backrest/tmp:/tmp
+      - /mnt/SSD/backrest/backrest/rclone:/root/.config/rclone
+      - /mnt/main_pool/home/backrest/.ssh:/root/.ssh
+      - /mnt/main_pool:/userdata
+version: '3.8'
