@@ -6,7 +6,8 @@ resources:
 # - argocd-cm.yaml
 - ingress.yml
 - 01-namespace.yaml
-- install.yaml
+# - install.yaml
+- https://raw.githubusercontent.com/argoproj/argo-cd/v3.3.8/manifests/install.yaml
 
 patches:
   - path: argocd-cm.yaml
