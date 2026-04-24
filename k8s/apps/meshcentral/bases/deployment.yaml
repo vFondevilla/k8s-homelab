@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: meshcentral
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: meshcentral
+  template:
+    metadata:
+      labels:
+        app: meshcentral
+    spec:
+      hostNetwork: true
+      containers:
+        - name: meshcentral
+          image: typhonragewind/meshcentral:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: https
+              containerPort: 443
+          env:
+            - name: HOSTNAME
+              value: "meshcentral.fondevilla.io"
+            - name: REVERSE_PROXY
+              value: "false"
+            - name: REVERSE_PROXY_TLS_PORT
+              value: ""
+            - name: IFRAME
+              value: "false"
+            - name: ALLOW_NEW_ACCOUNTS
+              value: "true"
+            - name: WEBRTC
+              value: "false"
+          volumeMounts:
+            - name: data
+              mountPath: /opt/meshcentral/meshcentral-data
+            - name: files
+              mountPath: /opt/meshcentral/meshcentral-files
+          readinessProbe:
+            tcpSocket:
+              port: 443
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 443
+            initialDelaySeconds: 30
+            periodSeconds: 20
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: meshcentral-data
+        - name: files
+          persistentVolumeClaim:
+            claimName: meshcentral-files
