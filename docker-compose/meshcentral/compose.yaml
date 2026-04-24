@@ -1,0 +1,17 @@
+services:
+  meshcentral:
+    image: typhonragewind/meshcentral:latest
+    restart: always
+    ports:
+      - "443:443"
+      - "4433:4433"
+    environment:
+      - HOSTNAME=meshcentral.fondevilla.io
+      - REVERSE_PROXY=false
+      - REVERSE_PROXY_TLS_PORT=
+      - IFRAME=false
+      - ALLOW_NEW_ACCOUNTS=true
+      - WEBRTC=false
+    volumes:
+      - /mnt/SSD/k8s_static_pv/meshcentral/data:/opt/meshcentral/meshcentral-data
+      - /mnt/SSD/k8s_static_pv/meshcentral/files:/opt/meshcentral/meshcentral-files
