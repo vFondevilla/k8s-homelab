@@ -4,4 +4,5 @@ metadata:
   name: argocd-cmd-params-cm
   namespace: argocd
 data:
+  server.insecure: "true"
   reposerver.exec.timeout: "300"
