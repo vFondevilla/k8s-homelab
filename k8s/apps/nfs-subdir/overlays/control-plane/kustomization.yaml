@@ -10,3 +10,38 @@ helmCharts:
     releaseName: nfs-subdir-external-provisioner
     namespace: nfs-subdir
     valuesFile: values.yaml
+patches:
+  - target:
+      kind: ServiceAccount
+      name: nfs-subdir-external-provisioner
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: nfs-subdir
+  - target:
+      group: rbac.authorization.k8s.io
+      version: v1
+      kind: Role
+      name: leader-locking-nfs-subdir-external-provisioner
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: nfs-subdir
+  - target:
+      group: rbac.authorization.k8s.io
+      version: v1
+      kind: RoleBinding
+      name: leader-locking-nfs-subdir-external-provisioner
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: nfs-subdir
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: nfs-subdir-external-provisioner
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: nfs-subdir
