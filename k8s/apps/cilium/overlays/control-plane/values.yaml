@@ -40,3 +40,6 @@ tunnelProtocol: vxlan
 ingressController:
   enabled: true
   loadbalancerMode: shared
+  default: true
+envoyConfig:
+  enabled: true
