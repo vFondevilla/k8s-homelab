@@ -4,6 +4,5 @@ namespace: home-assistant
 resources:
   - namespace.yaml
   - external-secret.yaml
-  - pv.yaml
   - pv-truenas.yaml
   - home-assistant.yaml
