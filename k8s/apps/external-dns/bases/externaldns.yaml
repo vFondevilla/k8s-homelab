@@ -60,7 +60,7 @@ spec:
           image: registry.k8s.io/external-dns/external-dns:v0.20.0
           args:
             - --log-level=debug
-            - --ignore-ingress-tls-spec=true
+            - --ignore-ingress-tls-spec
             - --source=ingress
             - --source=node
             - --source=service
