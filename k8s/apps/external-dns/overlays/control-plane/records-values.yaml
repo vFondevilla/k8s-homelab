@@ -11,3 +11,7 @@ records:
     dnsName: node05.fondevilla.io
     targets:
       - 10.1.0.15
+  - name: llm01
+    dnsName: llm01.fondevilla.io
+    targets:
+      - 10.1.0.162
