@@ -50,9 +50,6 @@ prometheus:
           resources:
             requests:
               storage: 200Gi
-          selector:
-            matchLabels:
-              app: prometheus
   coreDns:
     enabled: true
     service:
