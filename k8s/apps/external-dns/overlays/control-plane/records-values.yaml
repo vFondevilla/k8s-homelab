@@ -15,3 +15,8 @@ records:
     dnsName: llm01.fondevilla.io
     targets:
       - 10.1.0.162
+  - name: llm02
+    dnsName: llm02.fondevilla.io
+    type: CNAME
+    targets:
+      - gx10.fondevilla.io
