@@ -54,3 +54,8 @@ talos/workload-cluster/node08.yaml
 talos/workload-cluster/node09.yaml
 
 **/.claude/*
+
+**/charts/*
+!k8s/apps/external-dns/overlays/control-plane/charts/
+!k8s/apps/external-dns/overlays/control-plane/charts/external-dns-records/
+!k8s/apps/external-dns/overlays/control-plane/charts/external-dns-records/**
