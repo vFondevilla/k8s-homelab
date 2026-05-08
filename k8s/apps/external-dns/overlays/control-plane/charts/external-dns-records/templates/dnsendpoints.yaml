@@ -1,0 +1,17 @@
+{{- range .Values.records }}
+---
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: {{ .name | quote }}
+  namespace: {{ .namespace | default $.Release.Namespace | quote }}
+spec:
+  endpoints:
+    - dnsName: {{ .dnsName | quote }}
+      recordTTL: {{ .recordTTL | default $.Values.recordTTL }}
+      recordType: {{ .recordType | default $.Values.recordType | quote }}
+      targets:
+{{- range .targets }}
+        - {{ . | quote }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,13 @@
+records:
+  - name: gx10
+    dnsName: gx10.fondevilla.io
+    targets:
+      - 10.1.0.112
+  - name: mini
+    dnsName: mini.fondevilla.io
+    targets:
+      - 10.1.0.107
+  - name: node05
+    dnsName: node05.fondevilla.io
+    targets:
+      - 10.1.0.15

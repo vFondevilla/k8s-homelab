@@ -9,3 +9,7 @@ helmCharts:
     releaseName: external-dns
     namespace: external-dns
     valuesFile: values.yaml
+  - name: external-dns-records
+    releaseName: external-dns-records
+    namespace: default
+    valuesFile: records-values.yaml
