@@ -5,6 +5,7 @@ sources:
   - ingress
   - node
   - service
+  - crd
 
 domainFilters:
   - vfondevilla.com
