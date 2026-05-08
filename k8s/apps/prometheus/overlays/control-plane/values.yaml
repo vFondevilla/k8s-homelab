@@ -10,7 +10,7 @@ grafana:
     lookupVolumeName: grafana-pv
   ingress:
     enabled: true
-    ingressClassName: nginx
+    ingressClassName: cilium
     hosts:
       - grafana.prod.fondevilla.io
     annotations:
@@ -27,7 +27,7 @@ grafana:
 prometheus:
   ingress:
     enabled: true
-    ingressClassName: nginx
+    ingressClassName: cilium
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
     hosts:
