@@ -4,3 +4,4 @@ namespace: external-dns
 resources:
   - namespace.yaml
   - external-secret.yaml
+  - https://raw.githubusercontent.com/kubernetes-sigs/external-dns/master/config/crd/standard/dnsendpoints.externaldns.k8s.io.yaml
