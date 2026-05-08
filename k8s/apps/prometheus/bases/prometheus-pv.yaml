@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: prometheus-pv
+  labels:
+    app: prometheus
+spec:
+  capacity:
+    storage: 200Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Recycle
+  storageClassName: nfs-csi
+  mountOptions:
+    - hard
+    - nfsvers=4.1
+  nfs:
+    path: /mnt/SSD/k8s_static_volumes/prometheus
+    server: 10.1.0.4
