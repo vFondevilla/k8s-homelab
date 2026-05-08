@@ -1,0 +1,10 @@
+apiVersion: "cilium.io/v2alpha1"
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: tinkerbell-lb-ip-pool
+spec:
+  blocks:
+    - cidr: "10.253.0.50/31"
+  serviceSelector:
+    matchLabels:
+      app.kubernetes.io/name: smee

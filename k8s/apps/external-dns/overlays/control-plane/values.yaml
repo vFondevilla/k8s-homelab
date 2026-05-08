@@ -1,0 +1,28 @@
+provider:
+  name: cloudflare
+
+sources:
+  - ingress
+  - node
+  - service
+
+domainFilters:
+  - vfondevilla.com
+  - fondevilla.io
+
+logLevel: debug
+
+extraArgs:
+  - --ignore-ingress-tls-spec
+  - --zone-id-filter=f8c84b13fcbd4e9eda1c6530d1d1d233
+  - --zone-id-filter=45debf9c49e38724949cb53ca67386ed
+  - --cloudflare-dns-records-per-page=5000
+
+env:
+  - name: CF_API_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: cloudflare-api-token-secret
+        key: api-token
+  - name: CF_API_EMAIL
+    value: victor@fondevilla.io
