@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: actualbudget
+  namespace: actualbudget
+  labels:
+    app.kubernetes.io/name: actualbudget
+    app.kubernetes.io/component: ingress
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    external-dns.alpha.kubernetes.io/hostname: actual.fondevilla.io
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - actual.fondevilla.io
+      secretName: actualbudget-tls
+  rules:
+    - host: actual.fondevilla.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: actualbudget
+                port:
+                  number: 5006
