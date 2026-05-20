@@ -20,7 +20,3 @@ records:
     recordType: CNAME
     targets:
       - gx10.fondevilla.io
-  - name: actual
-    dnsName: actual.fondevilla.io
-    targets:
-      - 10.1.0.4
