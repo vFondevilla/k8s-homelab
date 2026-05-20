@@ -54,10 +54,10 @@ spec:
             #   command:
             #     - node
             #     - scripts/health-check.js
-            initialDelaySeconds: 60
-            periodSeconds: 60
-            timeoutSeconds: 10
-            failureThreshold: 3
+            # initialDelaySeconds: 60
+            # periodSeconds: 60
+            # timeoutSeconds: 10
+            # failureThreshold: 3
       volumes:
         - name: actualbudget-data
           persistentVolumeClaim:
