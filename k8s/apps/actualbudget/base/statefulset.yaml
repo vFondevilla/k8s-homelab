@@ -27,9 +27,9 @@ spec:
             - name: http
               containerPort: 5006
               protocol: TCP
-          envFrom:
-            - configMapRef:
-                name: actualbudget-config
+          # envFrom:
+            # - configMapRef:
+                # name: actualbudget-config
           volumeMounts:
             - name: actualbudget-data
               mountPath: /data
