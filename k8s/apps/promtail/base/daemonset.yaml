@@ -38,6 +38,12 @@ spec:
             - name: pods
               mountPath: /var/log/pods
               readOnly: true
+            - name: containers
+              mountPath: /var/log/containers
+              readOnly: true
+            - name: kubelet-pods
+              mountPath: /var/lib/kubelet/pods
+              readOnly: true
           resources:
             requests:
               cpu: 50m
@@ -70,4 +76,12 @@ spec:
         - name: pods
           hostPath:
             path: /var/log/pods
-            type: Directory
+            type: DirectoryOrCreate
+        - name: containers
+          hostPath:
+            path: /var/log/containers
+            type: DirectoryOrCreate
+        - name: kubelet-pods
+          hostPath:
+            path: /var/lib/kubelet/pods
+            type: DirectoryOrCreate
