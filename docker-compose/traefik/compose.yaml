@@ -2,26 +2,30 @@ services:
   traefik:
     image: traefik:v3.6
     container_name: traefik
-    restart: always
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     command:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=cloudflared"
+      - "--providers.docker.network=proxy"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
       - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
       - "--entrypoints.websecure.address=:443"
       - "--entrypoints.websecure.http.tls=true"
       - "--entrypoints.websecure.transport.respondingTimeouts.readTimeout=0"
       - "--entrypoints.websecure.transport.respondingTimeouts.writeTimeout=0"
       - "--certificatesresolvers.letsencrypt.acme.dnschallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.dnschallenge.provider=cloudflare"
-      - "--certificatesresolvers.letsencrypt.acme.email=admin@fondevilla.io"
+      - "--certificatesresolvers.letsencrypt.acme.dnschallenge.resolvers=1.1.1.1:53,8.8.8.8:53"
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
       - "--api.dashboard=true"
       - "--log.level=INFO"
     environment:
-      - CLOUDFLARE_EMAIL=victor@fondevilla.io
+      - CLOUDFLARE_API_TOKEN=${CF_DNS_API_TOKEN}
       - CLOUDFLARE_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
     ports:
       - "80:80"
@@ -33,7 +37,7 @@ services:
       - proxy
     labels:
       - traefik.enable=true
-      - traefik.http.routers.dashboard.rule=Host(`traefik.nas02.fondevilla.io`)
+      - traefik.http.routers.dashboard.rule=Host(`${TRAEFIK_DASHBOARD_HOST}`)
       - traefik.http.routers.dashboard.entrypoints=websecure
       - traefik.http.routers.dashboard.tls.certresolver=letsencrypt
       - traefik.http.routers.dashboard.service=api@internal
@@ -45,5 +49,5 @@ volumes:
 
 networks:
   proxy:
-    name: cloudflared
+    name: proxy
     driver: bridge
