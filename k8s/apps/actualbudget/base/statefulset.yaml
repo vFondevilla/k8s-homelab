@@ -40,20 +40,20 @@ spec:
             limits:
               cpu: 500m
               memory: 512Mi
-          readinessProbe:
-            exec:
-              command:
-                - node
-                - scripts/health-check.js
-            initialDelaySeconds: 20
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
-          livenessProbe:
-            exec:
-              command:
-                - node
-                - scripts/health-check.js
+          # readinessProbe:
+            # exec:
+            #   command:
+            #     - node
+            #     - scripts/health-check.js
+            # initialDelaySeconds: 20
+            # periodSeconds: 30
+            # timeoutSeconds: 10
+            # failureThreshold: 3
+          # livenessProbe:
+            # exec:
+            #   command:
+            #     - node
+            #     - scripts/health-check.js
             initialDelaySeconds: 60
             periodSeconds: 60
             timeoutSeconds: 10
