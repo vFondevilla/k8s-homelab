@@ -4,6 +4,7 @@ metadata:
   name: apps-workload
   namespace: argocd
 spec:
+  goTemplate: true
   ignoreApplicationDifferences:
     - jsonPointers:
         - /spec/syncPolicy
@@ -13,7 +14,7 @@ spec:
           - clusters:
               selector:
                 matchLabels:
-                  cluster: workload
+                  type: workload
           - git:
               repoURL: git@github.com:vFondevilla/k8s-homelab.git
               revision: main
@@ -21,18 +22,19 @@ spec:
                 - path: k8s/apps/*/overlays/workload
   template:
     metadata:
-      name: "{{name}}-{{ index (splitList "/" .path) 2 }}"
+      name: '{{.name}}-{{ index (splitList "/" .path.path) 2 }}'
     spec:
       project: default
       destination:
-        server: "{{server}}"
+        server: "{{.server}}"
       source:
         repoURL: git@github.com:vFondevilla/k8s-homelab.git
         targetRevision: main
-        path: "{{path}}"
+        path: "{{.path.path}}"
       syncPolicy:
         automated:
           prune: true
           selfHeal: true
         syncOptions:
           - CreateNamespace=true
+          - ServerSideApply=true
