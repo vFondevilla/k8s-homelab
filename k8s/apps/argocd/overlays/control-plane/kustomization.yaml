@@ -9,6 +9,7 @@ resources:
 # - install.yaml
 - https://raw.githubusercontent.com/argoproj/argo-cd/v3.3.8/manifests/install.yaml
 - in-cluster-secret.yaml
+- workload-cluster-secret.yaml
 
 patches:
   - path: argocd-cm.yaml
