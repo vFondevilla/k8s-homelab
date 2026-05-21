@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: unpoller
+  labels:
+    app.kubernetes.io/name: unpoller
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: unpoller
+  podMetricsEndpoints:
+    - port: metrics
+      path: /
+      interval: 30s
+      scrapeTimeout: 10s
+
