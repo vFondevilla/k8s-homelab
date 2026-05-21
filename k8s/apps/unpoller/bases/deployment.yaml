@@ -15,6 +15,13 @@ spec:
         app.kubernetes.io/name: unpoller
     spec:
       automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: unpoller
           image: ghcr.io/unpoller/unpoller:v2.21.0
@@ -43,9 +50,6 @@ spec:
               drop:
                 - ALL
             readOnlyRootFilesystem: true
-            runAsNonRoot: true
-            seccompProfile:
-              type: RuntimeDefault
           volumeMounts:
             - name: config
               mountPath: /etc/unpoller/up.conf
@@ -55,4 +59,3 @@ spec:
         - name: config
           secret:
             secretName: unpoller
-
