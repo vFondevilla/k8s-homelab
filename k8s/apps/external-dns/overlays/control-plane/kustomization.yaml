@@ -8,6 +8,7 @@ helmCharts:
     version: 1.20.0
     releaseName: external-dns
     namespace: external-dns
+    includeCRDs: true
     valuesFile: values.yaml
   - name: external-dns-records
     releaseName: external-dns-records
