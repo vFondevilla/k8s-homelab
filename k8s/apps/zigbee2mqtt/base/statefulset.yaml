@@ -15,8 +15,6 @@ spec:
         app: zigbee2mqtt
     spec:
       dnsPolicy: ClusterFirst
-      nodeSelector:
-        feature.node.kubernetes.io/usb-ff_10c4_ea60.present: "true"
       securityContext:
         seccompProfile:
           type: RuntimeDefault
