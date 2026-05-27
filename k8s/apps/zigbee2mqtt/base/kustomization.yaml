@@ -9,3 +9,7 @@ resources:
   - configmap.yaml
   - service.yaml
   - statefulset.yaml
+
+images:
+  - name: koenkk/zigbee2mqtt
+    newTag: 1.42.0

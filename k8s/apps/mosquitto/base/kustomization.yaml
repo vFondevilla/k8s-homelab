@@ -11,3 +11,7 @@ resources:
   - serviceaccount.yaml
   - service.yaml
   - deployment.yaml
+
+images:
+  - name: eclipse-mosquitto
+    newTag: 1.6.12

@@ -19,7 +19,7 @@ spec:
       serviceAccountName: mosquitto
       containers:
         - name: mosquitto
-          image: eclipse-mosquitto:1.6.12
+          image: eclipse-mosquitto
           imagePullPolicy: IfNotPresent
           ports:
             - name: mqtt
