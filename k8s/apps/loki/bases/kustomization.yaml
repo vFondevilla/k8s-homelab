@@ -3,4 +3,4 @@ kind: Kustomization
 namespace: loki
 resources:
   - namespace.yaml
-  # - external-secret.yaml
+  - external-secret.yaml
