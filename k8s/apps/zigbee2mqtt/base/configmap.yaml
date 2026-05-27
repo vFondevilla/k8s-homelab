@@ -27,18 +27,16 @@ data:
       server: mqtt://mosquitto.mosquitto.svc.cluster.local
     serial:
       baudrate: 115200
-      disable_led: false
-      port: /dev/ttyUSB0
-      rtscts: false
+      port: tcp://10.1.0.140:6638
+      adapter: ember
     frontend:
       host: 0.0.0.0
       port: 8080
     advanced:
-      adapter_delay: 0
       cache_state: true
       cache_state_persistent: true
       cache_state_send_on_startup: true
-      channel: 11
+      channel: 25
       elapsed: false
       last_seen: disable
       legacy_api: false
@@ -47,4 +45,4 @@ data:
         - console
       report: true
       timestamp_format: YYYY-MM-DD HH:mm:ss
-      transmit_power: 5
+      transmit_power: 20
