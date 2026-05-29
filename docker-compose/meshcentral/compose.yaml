@@ -21,7 +21,6 @@ services:
       - traefik.http.routers.meshcentral.rule=Host(`meshcentral.fondevilla.io`)
       - traefik.http.routers.meshcentral.entrypoints=websecure
       - traefik.http.routers.meshcentral.tls=true
-      - traefik.http.routers.meshcentral.tls.certresolver=letsencrypt
       - traefik.http.services.meshcentral.loadbalancer.server.scheme=http
       - traefik.http.services.meshcentral.loadbalancer.responseforwarding.flushinterval=100ms
       - traefik.http.services.meshcentral.loadbalancer.server.port=443
