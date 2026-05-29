@@ -3,15 +3,30 @@ services:
     image: typhonragewind/meshcentral:latest
     restart: always
     ports:
-      - "443:443"
       - "4433:4433"
     environment:
       - HOSTNAME=meshcentral.fondevilla.io
-      - REVERSE_PROXY=false
-      - REVERSE_PROXY_TLS_PORT=
+      - REVERSE_PROXY=true
+      - REVERSE_PROXY_TLS_PORT=443
       - IFRAME=false
       - ALLOW_NEW_ACCOUNTS=true
       - WEBRTC=false
     volumes:
       - /mnt/SSD/k8s_static_pv/meshcentral/data:/opt/meshcentral/meshcentral-data
       - /mnt/SSD/k8s_static_pv/meshcentral/files:/opt/meshcentral/meshcentral-files
+    networks:
+      - proxy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.meshcentral.rule=Host(`meshcentral.fondevilla.io`)
+      - traefik.http.routers.meshcentral.entrypoints=websecure
+      - traefik.http.routers.meshcentral.tls=true
+      - traefik.http.routers.meshcentral.tls.certresolver=letsencrypt
+      - traefik.http.services.meshcentral.loadbalancer.server.scheme=http
+      - traefik.http.services.meshcentral.loadbalancer.responseforwarding.flushinterval=100ms
+      - traefik.http.services.meshcentral.loadbalancer.server.port=443
+
+networks:
+  proxy:
+    name: proxy
+    external: true
