@@ -20,6 +20,11 @@ records:
     recordType: CNAME
     targets:
       - gx10.fondevilla.io
+  - name: ai395
+    dnsName: ai395.fondevilla.io
+    recordType: CNAME
+    targets:
+      - llm01.fondevilla.io
   - name: meshcentral.fondevilla.io
     dnsName: meshcentral.fondevilla.io
     targets:
