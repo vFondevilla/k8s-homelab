@@ -18,6 +18,22 @@ spec:
       securityContext:
         seccompProfile:
           type: RuntimeDefault
+      initContainers:
+        - name: seed-config
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              if [ ! -f /app/data/configuration.yaml ]; then
+                cp /config/configuration.yaml /app/data/configuration.yaml
+              fi
+          volumeMounts:
+            - mountPath: /config
+              name: config-volume
+              readOnly: true
+            - mountPath: /app/data
+              name: data-volume
       containers:
         - name: zigbee2mqtt
           image: koenkk/zigbee2mqtt
@@ -43,9 +59,6 @@ spec:
             periodSeconds: 30
             timeoutSeconds: 10
           volumeMounts:
-            - mountPath: /app/data/configuration.yaml
-              name: config-volume
-              subPath: configuration.yaml
             - mountPath: /app/data/
               name: data-volume
           resources:
