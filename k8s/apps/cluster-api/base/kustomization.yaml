@@ -5,3 +5,7 @@ resources:
   - https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.13.2/bootstrap-components.yaml
   - https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.13.2/control-plane-components.yaml
   - https://github.com/kubernetes-sigs/cluster-api-provider-kubevirt/releases/download/v0.11.2/infrastructure-components.yaml
+patches:
+  - path: patches/capi-controller-manager-args.yaml
+  - path: patches/capi-kubeadm-bootstrap-controller-manager-args.yaml
+  - path: patches/capi-kubeadm-control-plane-controller-manager-args.yaml

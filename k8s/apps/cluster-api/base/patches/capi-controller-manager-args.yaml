@@ -1,0 +1,15 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: capi-controller-manager
+  namespace: capi-system
+spec:
+  template:
+    spec:
+      containers:
+        - name: manager
+          args:
+            - --leader-elect
+            - --diagnostics-address=:8443
+            - --insecure-diagnostics=false
+            - --feature-gates=MachinePool=true,ClusterTopology=false,RuntimeSDK=false,MachineSetPreflightChecks=true,MachineWaitForVolumeDetachConsiderVolumeAttachments=true,PriorityQueue=true,ReconcilerRateLimiting=true,InPlaceUpdates=false,MachineTaintPropagation=false
