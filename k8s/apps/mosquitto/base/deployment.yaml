@@ -17,6 +17,19 @@ spec:
         app.kubernetes.io/instance: mosquitto
     spec:
       serviceAccountName: mosquitto
+      initContainers:
+        - name: fix-data-permissions
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - chmod 700 /mosquitto/data
+          securityContext:
+            runAsUser: 1883
+            runAsGroup: 1883
+          volumeMounts:
+            - name: data
+              mountPath: /mosquitto/data
       containers:
         - name: mosquitto
           image: eclipse-mosquitto
