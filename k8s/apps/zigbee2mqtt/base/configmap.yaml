@@ -11,13 +11,15 @@ data:
       enabled: true
       legacy_entity_attributes: true
       legacy_triggers: false
-      status_topic: hass/status
+      status_topic: homeassistant/status
     ota:
       disable_automatic_update_check: false
       ikea_ota_use_test_url: false
       update_check_interval: 1440
     permit_join: true
     blocklist: []
+    device_options:
+      retain: true
     availability:
       active:
         timeout: 10

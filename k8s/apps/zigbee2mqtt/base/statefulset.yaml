@@ -25,7 +25,10 @@ spec:
             - sh
             - -c
             - |
-              if [ ! -f /app/data/configuration.yaml ]; then
+              if [ ! -s /app/data/configuration.yaml ] || ! grep -Eq '^[[:space:]]*(homeassistant|mqtt|serial|frontend|advanced|devices|groups):' /app/data/configuration.yaml; then
+                if [ -e /app/data/configuration.yaml ]; then
+                  cp /app/data/configuration.yaml /app/data/configuration.yaml.invalid
+                fi
                 cp /config/configuration.yaml /app/data/configuration.yaml
               fi
           volumeMounts:
