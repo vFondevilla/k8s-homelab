@@ -8,8 +8,9 @@ resources:
 - 01-namespace.yaml
 # - install.yaml
 - https://raw.githubusercontent.com/argoproj/argo-cd/v3.3.8/manifests/install.yaml
+- dex-google-externalsecret.yaml
 - in-cluster-secret.yaml
-- workload-cluster-secret.yaml
+# - workload-cluster-secret.yaml
 
 patches:
   - path: argocd-cm.yaml
@@ -17,6 +18,11 @@ patches:
       version: v1
       kind: ConfigMap
       name: argocd-cm
+  - path: argocd-rbac-cm.yaml
+    target:
+      version: v1
+      kind: ConfigMap
+      name: argocd-rbac-cm
   - path: argocd-server-lb.yaml
     target:
       version: v1
