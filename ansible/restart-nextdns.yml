@@ -1,0 +1,16 @@
+---
+- name: Restart NextDNS on the UniFi gateway
+  hosts: router
+  gather_facts: false
+
+  tasks:
+    - name: Restart the NextDNS daemon
+      ansible.builtin.systemd_service:
+        name: nextdns
+        state: restarted
+
+    - name: Verify the NextDNS daemon is active
+      ansible.builtin.command:
+        cmd: systemctl is-active nextdns
+      changed_when: false
+

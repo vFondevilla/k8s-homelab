@@ -15,3 +15,33 @@ all:
         vps:
           ansible_host: 100.108.125.31
           ansible_user: root
+    minim4:
+      hosts:
+        minim4:
+          ansible_host: 10.1.0.107
+          ansible_user: victor
+    gx10:
+      hosts:
+        gx10:
+          ansible_user: victor
+    proxmox:
+      hosts:
+        node07:
+          ansible_host: 10.1.0.17
+          ansible_user: root
+        node08:
+          ansible_host: 10.1.0.18
+          ansible_user: root
+        node09:
+          ansible_host: 10.1.0.19
+          ansible_user: root
+    router:
+      hosts:
+        unifi_gateway:
+          ansible_host: 10.1.0.1
+          ansible_user: root
+          ansible_password: "{{ lookup('community.general.onepassword', '543qe2lhvfczbdcd5b7bbpqowa', field='password') }}"
+    node05:
+      hosts:
+        node05.fondevilla.io:
+          ansible_user: victor
