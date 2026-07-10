@@ -20,3 +20,108 @@ tasks:
     desc: Run VPS playbook provisioning only
     cmds:
       - ansible-playbook -i inventory.yml vps.yml --tags provisioning
+
+  minim4:
+    desc: Run Mac Mini M4 playbook (full provisioning)
+    cmds:
+      - ansible-playbook -i inventory.yml minim4.yml
+
+  minim4:provision:
+    desc: Run Mac Mini M4 playbook provisioning only
+    cmds:
+      - ansible-playbook -i inventory.yml minim4.yml --tags provisioning
+
+  gx10:
+    desc: Run gx10 (DGX Spark) playbook (full provisioning)
+    cmds:
+      - ansible-playbook -i inventory.yml gx10.yml
+
+  gx10:provision:
+    desc: Run gx10 playbook provisioning only
+    cmds:
+      - ansible-playbook -i inventory.yml gx10.yml --tags provisioning
+
+  gx10:tailscale:
+    desc: Run only the Tailscale tasks on gx10
+    cmds:
+      - ansible-playbook -i inventory.yml gx10.yml --tags tailscale
+
+  github-ssh-keys:
+    desc: Install victor's GitHub SSH keys into authorized_keys
+    cmds:
+      - ansible-playbook -i inventory.yml github-ssh-keys.yml
+
+  proxmox:
+    desc: Provision Proxmox nodes
+    cmds:
+      - ansible-playbook -i inventory.yml proxmox.yml
+
+  router:restart-nextdns:
+    desc: Restart NextDNS on the UniFi gateway
+    cmds:
+      - ansible-playbook -i inventory.yml restart-nextdns.yml
+
+  k0s:
+    desc: Deploy k0s cluster on VPS (full deployment)
+    cmds:
+      - ansible-playbook k0s.yml
+
+  k0s:install:
+    desc: Install k0sctl tool only
+    cmds:
+      - ansible-playbook k0s.yml --tags install
+
+  k0s:deploy:
+    desc: Run k0sctl apply to bootstrap/update cluster
+    cmds:
+      - ansible-playbook k0s.yml --tags deploy
+
+  k0s:kubeconfig:
+    desc: Retrieve kubeconfig from cluster
+    cmds:
+      - ansible-playbook k0s.yml --tags kubeconfig
+
+  k0s:verify:
+    desc: Verify cluster connectivity
+    cmds:
+      - ansible-playbook k0s.yml --tags verify
+
+  k0s:reset:
+    desc: Destroy k0s cluster (DESTRUCTIVE)
+    cmds:
+      - ansible-playbook k0s.yml --tags reset
+
+  # n8n Migration Tasks
+  n8n:backup:
+    desc: Backup n8n data from Docker volume
+    cmds:
+      - ansible-playbook -i inventory.yml migrate-n8n.yml --tags backup
+
+  n8n:restore:
+    desc: Restore n8n data to k8s hostPath
+    cmds:
+      - ansible-playbook -i inventory.yml migrate-n8n.yml --tags restore
+
+  n8n:deploy:
+    desc: Deploy n8n to k8s cluster
+    cmds:
+      - ansible-playbook -i inventory.yml migrate-n8n.yml --tags deploy
+
+  n8n:verify:
+    desc: Verify n8n k8s deployment
+    cmds:
+      - ansible-playbook -i inventory.yml migrate-n8n.yml --tags verify
+
+  n8n:migrate:
+    desc: Full migration (backup, stop docker, restore, deploy)
+    cmds:
+      - task: n8n:backup
+      - ansible-playbook -i inventory.yml migrate-n8n.yml --tags stop-docker
+      - task: n8n:restore
+      - task: n8n:deploy
+      - task: n8n:verify
+
+  n8n:rollback:
+    desc: Rollback to Docker (start docker stack)
+    cmds:
+      - ansible-playbook -i inventory.yml migrate-n8n.yml --tags start-docker
