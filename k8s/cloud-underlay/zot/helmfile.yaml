@@ -1,0 +1,80 @@
+repositories:
+  - name: project-zot
+    url: http://zotregistry.dev/helm-charts
+
+releases:
+  - name: zot
+    namespace: zot
+    chart: project-zot/zot
+    version: 0.1.121
+    createNamespace: true
+    values:
+      -
+        ingress:
+          enabled: true
+          annotations:
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+          className: "cilium"
+          pathtype: Prefix
+          hosts:
+            - host: zot.apps.fondevilla.io
+              paths:
+                - path: /
+          tls:
+            - hosts:
+                - zot.apps.fondevilla.io
+              secretName: zot-tls
+        mountConfig: true
+        configFiles:
+          config.json: |-
+            {
+              "storage": { "rootDirectory": "/var/lib/registry" },
+              "http": {
+                "address": "0.0.0.0",
+                "port": "5000",
+                "readTimeout": "60s",
+                "writeTimeout": "60s",
+                "compat": ["docker2s2"]
+              },
+              "log": { "level": "debug" },
+              "extensions": {
+                "ui": { "enable": true },
+                "search": { 
+                  "enable": true,
+                  "cve": {
+                    "updateInterval": "2h"
+                    }
+                  },
+                "sync": {
+                  "enable": true,
+                  "registries": [
+                    {
+                      "urls": ["https://index.docker.io"],
+                      "onDemand": true,
+                      "tlsVerify": true,
+                      "preserveDigest": true,
+                      "syncTimeout": "30m",
+                      "content": [
+                        {
+                          "prefix": "**",
+                          "destination": "/dockerhub"
+                        }
+                      ]
+                    },
+                    {
+                      "urls": ["https://quay.io"],
+                      "onDemand": true,
+                      "tlsVerify": true,
+                      "preserveDigest": true,
+                      "syncTimeout": "30m",
+                      "content": [
+                        {
+                          "prefix": "**",
+                          "destination": "/quay"
+                        }
+                      ]
+                    }
+                  ]
+                  }
+                }
+            }

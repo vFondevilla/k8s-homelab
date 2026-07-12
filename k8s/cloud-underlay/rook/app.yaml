@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rook-ceph
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: 'https://k8s.fondevilla.io:6443'
+    namespace: rook-ceph
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+  sources:
+    - repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
+      path: k8s/rook
+      directory:
+        recurse: true
+      targetRevision: HEAD
