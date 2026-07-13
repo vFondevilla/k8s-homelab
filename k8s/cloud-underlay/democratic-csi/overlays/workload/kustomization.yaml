@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: democratic-csi
+resources:
+  - ../../base
+  - external-secret-nfs.yaml
+  - external-secret-iscsi.yaml
+helmCharts:
+  - name: democratic-csi
+    repo: https://democratic-csi.github.io/charts/
+    version: 0.15.1
+    releaseName: truenas-nfs
+    namespace: democratic-csi
+    valuesFile: values-nfs.yaml
+  - name: democratic-csi
+    repo: https://democratic-csi.github.io/charts/
+    version: 0.15.1
+    releaseName: truenas-iscsi
+    namespace: democratic-csi
+    valuesFile: values-iscsi.yaml

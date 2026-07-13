@@ -10,6 +10,11 @@ releases:
     createNamespace: true
     values:
       -
+        persistence: true
+        pvc:
+          create: true
+          storage: 100Gi
+          storageClassName: nfs-client
         ingress:
           enabled: true
           annotations:
@@ -73,7 +78,20 @@ releases:
                           "destination": "/quay"
                         }
                       ]
-                    }
+                    },
+                    {
+                      "urls": ["https://ghcr.io"],
+                      "onDemand": true,
+                      "tlsVerify": true,
+                      "preserveDigest": true,
+                      "syncTimeout": "30m",
+                      "content": [
+                        {
+                          "prefix": "**",
+                          "destination": "/ghcr"
+                        }
+                        ]
+                        }
                   ]
                   }
                 }

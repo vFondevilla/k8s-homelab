@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: iscsi-test-verifier
+  namespace: democratic-csi-test
+spec:
+  nodeName: node07
+  restartPolicy: Never
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: verifier
+      image: docker.io/busybox:1.37.0
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+        runAsNonRoot: true
+        runAsUser: 65534
+      command:
+        - sh
+        - -c
+        - |-
+          set -eu
+          sha256sum -c /data/payload.sha256
+          echo REATTACH_CHECK_OK
+          sleep 3600
+      volumeMounts:
+        - name: data
+          mountPath: /data
+  volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: iscsi-test

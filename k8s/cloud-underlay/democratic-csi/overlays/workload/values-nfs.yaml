@@ -1,0 +1,43 @@
+csiDriver:
+  name: org.democratic-csi.workload.nfs
+  fsGroupPolicy: File
+
+controller:
+  externalSnapshotter:
+    enabled: false
+  driver:
+    image:
+      registry: ghcr.io/democratic-csi/democratic-csi
+      tag: v1.9.5
+
+node:
+  driver:
+    image:
+      registry: ghcr.io/democratic-csi/democratic-csi
+      tag: v1.9.5
+
+driver:
+  existingConfigSecret: truenas-nfs-driver-config
+  config:
+    driver: freenas-api-nfs
+
+storageClasses:
+  - name: truenas-nfs
+    defaultClass: false
+    reclaimPolicy: Retain
+    volumeBindingMode: Immediate
+    allowVolumeExpansion: true
+    parameters:
+      fsType: nfs
+    mountOptions:
+      - noatime
+      - nfsvers=4.1
+      - hard
+    secrets:
+      provisioner-secret: null
+      controller-publish-secret: null
+      node-stage-secret: null
+      node-publish-secret: null
+      controller-expand-secret: null
+
+volumeSnapshotClasses: []

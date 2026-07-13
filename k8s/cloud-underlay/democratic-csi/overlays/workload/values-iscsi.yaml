@@ -1,0 +1,47 @@
+csiDriver:
+  name: org.democratic-csi.workload.iscsi
+
+controller:
+  externalSnapshotter:
+    enabled: false
+  driver:
+    image:
+      registry: ghcr.io/democratic-csi/democratic-csi
+      tag: v1.9.5
+
+node:
+  hostPID: true
+  driver:
+    image:
+      registry: ghcr.io/democratic-csi/democratic-csi
+      tag: v1.9.5
+    extraEnv:
+      - name: ISCSIADM_HOST_STRATEGY
+        value: nsenter
+      - name: ISCSIADM_HOST_PATH
+        value: /usr/local/sbin/iscsiadm
+    iscsiDirHostPath: /var/iscsi
+    iscsiDirHostPathType: DirectoryOrCreate
+
+driver:
+  existingConfigSecret: truenas-iscsi-driver-config
+  config:
+    driver: freenas-api-iscsi
+
+storageClasses:
+  - name: truenas-iscsi
+    defaultClass: false
+    reclaimPolicy: Retain
+    volumeBindingMode: Immediate
+    allowVolumeExpansion: true
+    parameters:
+      fsType: ext4
+    mountOptions: []
+    secrets:
+      provisioner-secret: null
+      controller-publish-secret: null
+      node-stage-secret: null
+      node-publish-secret: null
+      controller-expand-secret: null
+
+volumeSnapshotClasses: []

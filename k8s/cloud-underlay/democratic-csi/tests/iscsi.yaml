@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: democratic-csi-test
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: iscsi-test
+  namespace: democratic-csi-test
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: truenas-iscsi
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: iscsi-test-writer
+  namespace: democratic-csi-test
+spec:
+  restartPolicy: Never
+  containers:
+    - name: writer
+      image: docker.io/busybox:1.37.0
+      command:
+        - sh
+        - -c
+        - |-
+          set -eu
+          if [ ! -f /data/payload ]; then
+            dd if=/dev/urandom of=/data/payload bs=1M count=8
+          fi
+          sha256sum /data/payload | tee /data/payload.sha256
+          sync
+          sleep 3600
+      volumeMounts:
+        - name: data
+          mountPath: /data
+  volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: iscsi-test
