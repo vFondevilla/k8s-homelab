@@ -1,0 +1,58 @@
+releases:
+  - name: litellm
+    namespace: litellm
+    chart: oci://ghcr.io/berriai/litellm-helm
+    version: 1.92.0
+    createNamespace: true
+    values:
+      -
+        image:
+          repository: zot.apps.fondevilla.io/ghcr/berriai/litellm-database
+        strategy:
+          type: Recreate
+        envVars:
+          CHATGPT_TOKEN_DIR: /var/lib/litellm/chatgpt
+        volumes:
+          - name: chatgpt-auth
+            persistentVolumeClaim:
+              claimName: litellm-chatgpt-auth-nfs-client
+        volumeMounts:
+          - name: chatgpt-auth
+            mountPath: /var/lib/litellm/chatgpt
+        ingress:
+          enabled: true
+          annotations:
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+          className: "cilium"
+          pathtype: Prefix
+          hosts:
+            - host: litellm.fondevilla.io
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - secretName: litellm-tls
+              hosts:
+                - litellm.fondevilla.io
+        masterkeySecretName: litellm-master-key
+        masterkeySecretKey: masterkey
+        db:
+          useExisting: true
+          deployStandalone: false
+          endpoint: litellm-postgresql-rw.litellm.svc.cluster.local
+          database: litellm
+          secret:
+            name: postgres
+            usernameKey: username
+            passwordKey: password
+        proxy_config:
+          general_settings:
+            master_key: os.environ/PROXY_MASTER_KEY
+            store_model_in_db: true
+            store_prompts_in_spend_logs: true
+          model_list:
+            - model_name: chatgpt/gpt-5.6-sol
+              model_info:
+                mode: responses
+              litellm_params:
+                model: chatgpt/gpt-5.6-sol

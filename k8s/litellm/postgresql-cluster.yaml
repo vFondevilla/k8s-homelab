@@ -1,0 +1,23 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: litellm-postgresql
+  namespace: litellm
+spec:
+  description: "Postgres DB for litellm"
+  instances: 1
+
+  enableSuperuserAccess: true
+  superuserSecret:
+    name: postgres-superuser
+
+  storage:
+    size: 20Gi
+    storageClass: truenas-iscsi
+
+  bootstrap:
+    initdb:
+      database: litellm
+      owner: litellm
+      secret:
+        name: postgres
