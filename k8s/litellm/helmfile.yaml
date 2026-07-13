@@ -12,6 +12,7 @@ releases:
           type: Recreate
         envVars:
           CHATGPT_TOKEN_DIR: /var/lib/litellm/chatgpt
+          FORWARDED_ALLOW_IPS: "10.244.0.0/16"
         volumes:
           - name: chatgpt-auth
             persistentVolumeClaim:
