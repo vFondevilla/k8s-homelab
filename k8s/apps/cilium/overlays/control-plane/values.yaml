@@ -28,7 +28,7 @@ k8sServicePort: 7445
 bgpControlPlane:
   enabled: true
 cluster:
-  name: control-cluster
+  name: homelab
 gatewayAPI:
   enableAlpn: true
   enableAppProtocol: true
