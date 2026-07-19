@@ -17,4 +17,4 @@ spec:
     - nfsvers=4.1
   nfs:
     path: /mnt/SSD/k8s_static_volumes/prometheus
-    server: 10.1.0.4
+    server: 10.254.0.4

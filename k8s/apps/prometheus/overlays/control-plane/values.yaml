@@ -41,10 +41,11 @@ prometheus:
     serviceMonitorSelectorNilUsesHelmValues: false
     podMonitorSelectorNilUsesHelmValues: false
     probeSelectorNilUsesHelmValues: false
+    scrapeconfigSelectorNilUsesHelmValues: false
     storageSpec:
       volumeClaimTemplate:
         spec:
-          storageClassName: nfs-client
+          storageClassName: nfs-csi
           accessModes:
             - ReadWriteOnce
           resources:
