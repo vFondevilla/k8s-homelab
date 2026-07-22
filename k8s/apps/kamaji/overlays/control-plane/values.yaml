@@ -1,0 +1,21 @@
+replicaCount: 1
+
+image:
+  repository: clastix/kamaji
+  pullPolicy: IfNotPresent
+
+serviceMonitor:
+  enabled: false
+
+etcd:
+  deploy: true
+  persistence:
+    size: 10Gi
+    storageClassName: ""
+
+datastore:
+  enabled: true
+  driver: etcd
+
+telemetry:
+  disabled: true
