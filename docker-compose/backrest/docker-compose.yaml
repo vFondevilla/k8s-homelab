@@ -20,4 +20,6 @@ services:
       - /mnt/SSD/backrest/backrest/rclone:/root/.config/rclone
       - /mnt/main_pool/home/backrest/.ssh:/root/.ssh
       - /mnt/main_pool:/userdata
+    extra_hosts:
+      - "mini=10.1.0.107"
 version: '3.8'
