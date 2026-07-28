@@ -102,8 +102,8 @@ spec:
     - hard
     - nfsvers=4.1
   nfs:
-    server: 10.1.0.4
-    path: /mnt/SSD/k8s_static_pv/netbootxyz/config
+    server: 10.1.0.3
+    path: /mnt/flash/k8s_static_pv/netbootxyz/config
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -134,8 +134,8 @@ spec:
     - hard
     - nfsvers=4.1
   nfs:
-    path: /mnt/SSD/k8s_static_pv/netbootxyz/assets
-    server: 10.1.0.4
+    path: /mnt/flash/k8s_static_pv/netbootxyz/assets
+    server: 10.1.0.3
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -151,4 +151,3 @@ spec:
   storageClassName: manual
   accessModes:
     - ReadWriteOnce
-

@@ -8,8 +8,8 @@ spec:
   accessModes:
     - ReadWriteMany
   nfs:
-    server: 10.1.0.4
-    path: "/mnt/SSD/k8s_static_pv/home-assistant"
+    server: 10.1.0.3
+    path: "/mnt/flash/k8s_static_pv/home-assistant"
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

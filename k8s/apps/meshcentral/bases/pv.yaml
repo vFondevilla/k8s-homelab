@@ -8,8 +8,8 @@ spec:
   accessModes: ["ReadWriteMany"]
   storageClassName: manual
   nfs:
-    server: nas02.fondevilla.io
-    path: "/mnt/SSD/k8s_static_pv/meshcentral/data"
+    server: 10.1.0.3
+    path: "/mnt/flash/k8s_static_pv/meshcentral/data"
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -21,5 +21,5 @@ spec:
   accessModes: ["ReadWriteMany"]
   storageClassName: manual
   nfs:
-    server: nas02.fondevilla.io
-    path: "/mnt/SSD/k8s_static_pv/meshcentral/files"
+    server: 10.1.0.3
+    path: "/mnt/flash/k8s_static_pv/meshcentral/files"

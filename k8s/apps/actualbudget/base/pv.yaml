@@ -13,8 +13,8 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ""
   nfs:
-    server: 10.1.0.4
-    path: /mnt/SSD/actual-data
+    server: 10.1.0.3
+    path: /mnt/flash/actual-data
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

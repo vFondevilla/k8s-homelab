@@ -15,8 +15,8 @@ spec:
     helm:
       valuesObject:
         nfs:
-          server: 10.1.0.4
-          path: /mnt/SSD/k8s_static_pv/
+          server: 10.1.0.3
+          path: /mnt/flash/k8s_static_pv/
         storageClass:
           name: nfs
           defaultClass: true

@@ -8,6 +8,6 @@ spec:
   accessModes:
     - ReadWriteOnce
   nfs:
-    server: 10.1.0.4
-    path: "/mnt/SSD/k8s_static_pv/z2m-data-volume-zigbee2mqtt-net-0-pvc-c5158e53-32fa-4951-b939-37074c22d4a0"
+    server: 10.1.0.3
+    path: "/mnt/flash/k8s_static_pv/z2m-data-volume-zigbee2mqtt-net-0-pvc-c5158e53-32fa-4951-b939-37074c22d4a0"
   storageClassName: manual
