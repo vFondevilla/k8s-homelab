@@ -10,7 +10,7 @@ resources:
 - dex-google-externalsecret.yaml
 - in-cluster-secret.yaml
 # - workload-cluster-secret.yaml
-- https://github.com/argoproj/argo-cd/blob/v3.5.0/manifests/install.yaml
+- https://raw.githubusercontent.com/argoproj/argo-cd/refs/tags/v3.5.0/manifests/install.yaml
 patches:
   - path: argocd-cm.yaml
     target:
