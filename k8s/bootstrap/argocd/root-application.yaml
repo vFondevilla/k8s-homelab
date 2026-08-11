@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  # Establish the single bootstrap Application only after the generated
+  # inventory has been compared with live Argo. The initial root intentionally
+  # retains existing Application identities and source paths.
+  name: argocd
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+  sources:
+    - repoURL: git@github.com:vFondevilla/k8s-homelab.git
+      path: k8s/argocd
+      targetRevision: main
