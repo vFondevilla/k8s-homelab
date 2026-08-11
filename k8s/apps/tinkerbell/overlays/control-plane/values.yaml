@@ -3,7 +3,7 @@
 # the ARTIFACTS_FILE_SERVER is used to set the load balancer IP for the HookOS/nginx service object and will be used to configure TINKERBELL_IPXE_HTTP_SCRIPT_OSIE_URL in the Tinkerbell deployment.
 # ARTIFACTS_FILE_SERVER=http://192.168.2.117:7173
 # helm install tinkerbell tinkerbell/ --create-namespace --namespace tinkerbell --wait --set "trustedProxies={${TRUSTED_PROXIES}}" --set "publicIP=$LB_IP" --set "artifactsFileServer=$ARTIFACTS_FILE_SERVER" --set "deployment.agentImageTag=latest" --set "deployment.imageTag=latest"
-artifactsFileServer:
+artifactsFileServer: http://10.253.0.50:7173
 deployment:
   additionalEnvs: []
   # - name: MY_ENV_VAR
@@ -290,4 +290,3 @@ optional:
     nodeSelector: {}
     tolerations: []
     affinity: {}
-
