@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: onepassword-connect
+  namespace: 1p
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: cilium
+  tls:
+    - hosts:
+        - onepassword-connect.cp.fondevilla.io
+      secretName: onepassword-connect-tls
+  rules:
+    - host: onepassword-connect.cp.fondevilla.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: onepassword-connect
+                port:
+                  name: connect-api
