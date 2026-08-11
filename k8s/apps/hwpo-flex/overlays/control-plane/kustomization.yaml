@@ -11,6 +11,6 @@ images:
   # internal-image convention is used here; replace the repository/tag with
   # the application's published image and immutable commit SHA before deploy.
   - name: hwpo-flex
-    newName: harbor.fondevilla.io/homelab/hwpo-flex
-    newTag: REPLACE_WITH_HWPO_FLEX_COMMIT_SHA
+    newName: zot.apps.fondevilla.io/hwpo-flex
+    newTag: latest
 
