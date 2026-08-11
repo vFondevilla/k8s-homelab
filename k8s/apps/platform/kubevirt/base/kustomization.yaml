@@ -5,3 +5,13 @@ resources:
   - kubevirt-deployment.yaml
   - cdi-operator.yaml
   - cdi-deployment.yaml
+
+patches:
+  - target:
+      group: apiextensions.k8s.io
+      version: v1
+      kind: CustomResourceDefinition
+      name: cdis.cdi.kubevirt.io
+    patch: |-
+      - op: remove
+        path: /spec/versions/0
