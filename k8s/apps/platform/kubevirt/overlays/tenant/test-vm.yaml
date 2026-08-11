@@ -1,0 +1,106 @@
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: fedora-vm
+  namespace: kubevirt
+spec:
+  running: false
+  template:
+    metadata:
+      labels:
+        kubevirt.io/vm: fedora-vm
+      annotations:
+        kubevirt.io/allow-pod-bridge-network-live-migration: "true"
+    spec:
+      evictionStrategy: LiveMigrate
+      domain:
+        cpu:
+          cores: 2
+        resources:
+          requests:
+            memory: 16G
+        devices:
+          disks:
+            - name: fedora-vm-pvc
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+          - name: podnet
+            masquerade: {}
+      networks:
+        - name: podnet
+          pod: {}
+      volumes:
+        - name: fedora-vm-pvc
+          persistentVolumeClaim:
+            claimName: fedora-vm-pvc
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            networkData: |
+              network:
+                version: 1
+                config:
+                  - type: physical
+                    name: eth0
+                    subnets:
+                      - type: dhcp
+            userData: |-
+              #cloud-config
+              users:
+                - name: cloud-user
+                  ssh_authorized_keys:
+                    - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC5IL4a98AKqLT7jSnRWDSyB1xlZq4AmBYdbkZake3P08Eohlanvfa89LNCCeQGKSbReVrSdrMTr13by6vA1YfJ04hYPCtWY4pMCogPkZG2CQb48oVZNLMPXtsssK4kALaF88ABAJ/OA67sca8PWYhczh5E/uwsZHxHqmZs2dMV0Wn1k6bjFdgUw01EK8CqZtdKbm+F7dmu2Wiq5OCxdQmHmsnFm51nKW8sN5EvfCl4RbnfHu+GIC8BD1QTfMs6YxpH2R6Nc9CdFO3fowetfhz4WAMClO50FleuBANgJVbEzZl5Di9aGcBSrzOXQuycoRMjBBzOk1OCMeCZJrAdXE5r"
+                    - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDU0Oc/ug4rRwRLsXIbVRbJQvIJc3Xb4m2gFZe8iGC2ZJY0EbetbtGdETpzGadBYhrBbH618EXb1yflYyEQnHFpx8ps9e0I16kXzMCpVuQBT27uFEm/bXuea0Jb5GqRjgITAhlF90WJ+aNbVnZyfyG05Uvx82oCavk0MJsVdSC7391lWnV0PMlH0U2y3YPTMy6Z6Lv5hKWDduhXyNL14YWqo5z4A1O+2OwOGnEDEN/V+tISeue5UyBiNuHawPycHTIKQ5hIgnlToRSq1EaJnM+ugL3f5XuDtN27nMkA5gJGmU2jGf3PeXoziC03AzByWYh9de10v+q0LL69X5fY6lacd643I873gNJeuD6r3SUOS0gLdTyA9x/7efsGxLjTwhbiNBkMhuhEdzef9Ded/qIgO/XkycEhygWDeTT8AgZ8WocKeuTLi7KKswxr7zdMQzg7EtiyTxCLqgHo0X7os3jhd3H/vNh1Og+SMBaHOsiOJzy3GgzwYXZvfKb5DxSorEk="
+                    - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDmeYUhyDS0md1g62LRdaYPEYmikiJdA4X6+2Ci2XOmIzj4cVYzvf7MvITG6lV2G4PrSJK3n7uviSrrqUAZC6ug++oBs67mYmR+OBiV7otKTcqcJaaxoKrfMwhBovOMJ4eL7O4oVzp1FzL/MobA7rdf+b3NCY68LEwqveqBd1cSKLWgHI2s+1+dOcdvLmY/DA5EEm76js61FAbz+fiYSdhzY4HUunlHb9PyNW/TPi1fvpFTK8btjuh3Mz5fAkZSidrwmdq8Q4L2AuzSpYfGaEr9z5Ln1j/3JSCRYuJEGAdkGSatbA2VPKaoyu/EQOCdHnAB59Xgj9gNfLdxMW/ycNkleN6uLTeniFHTDcbWXT4uHG4YBr0UZi/ApEWlaAiloRrQVom5zKl2DowO8TpEtyY8rU+t+u62axuPwt1xaInvZHlrfeTixdEUWHJXHNxP/RmbghjdgtcidJuU1Bc8hSWDszmHAy0qFcd5nOHcwgvuEjxoJ/D9Fa7CqMU7Sx35+8E="
+                  sudo: ['ALL=(ALL) NOPASSWD:ALL']
+                  groups: sudo
+                  shell: /bin/bash
+              runcmd:
+                - "sudo touch /root/installed"
+                - "sudo dnf update"
+                - "sudo dnf install httpd fastfetch -y"
+                - "sudo systemctl daemon-reload"
+                - "sudo systemctl enable httpd"
+                - "sudo systemctl start --no-block httpd"
+
+  dataVolumeTemplates:
+  - metadata:
+      name: fedora-vm-pvc
+    spec:
+      storage:
+        resources:
+          requests:
+            storage: 50Gi
+        accessModes:
+          - ReadWriteMany
+        storageClassName: "nfs-client"
+      source:
+        http:
+          url: "https://dl.fedoraproject.org/pub/fedora/linux/releases/43/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    kubevirt.io/vm: fedora-vm
+  name: fedora-vm
+  namespace: kubevirt
+spec:
+  ipFamilyPolicy: PreferDualStack
+  externalTrafficPolicy: Local
+  ports:
+  - name: ssh
+    port: 22
+    protocol: TCP
+    targetPort: 22
+  - name: httpd
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    kubevirt.io/vm: fedora-vm
+  type: LoadBalancer
