@@ -6,3 +6,5 @@ metadata:
 data:
   server.insecure: "true"
   reposerver.exec.timeout: "300"
+  # Allow per-ApplicationSet create-update transition guards.
+  applicationsetcontroller.enable.policy.override: "true"
