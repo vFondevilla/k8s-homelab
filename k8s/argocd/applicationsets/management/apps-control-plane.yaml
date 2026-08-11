@@ -31,6 +31,9 @@ spec:
                 - path: k8s/apps/1password-connect/overlays/control-plane
                   exclude: true
                 - path: k8s/apps/platform/1password-connect/overlays/management
+                - path: k8s/apps/external-secrets-operator/overlays/control-plane
+                  exclude: true
+                - path: k8s/apps/platform/external-secrets-operator/overlays/management
   template:
     metadata:
       name: '{{.name}}-{{ if eq (index (splitList "/" .path.path) 2) "platform" }}{{ index (splitList "/" .path.path) 3 }}{{ else }}{{ index (splitList "/" .path.path) 2 }}{{ end }}'
