@@ -4,9 +4,9 @@ resources:
   - ../../base
   - ip-pool.yaml
 helmCharts:
-  - name: stack
-    repo: oci://ghcr.io/tinkerbell/charts/tinkerbell
-    version: 0.22.1
+  - name: tinkerbell
+    repo: oci://ghcr.io/tinkerbell/charts
+    version: v0.22.1
     releaseName: tinkerbell
     namespace: tinkerbell
     valuesFile: values.yaml
