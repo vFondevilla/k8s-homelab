@@ -37,6 +37,9 @@ spec:
                 - path: k8s/apps/cert-manager/overlays/control-plane
                   exclude: true
                 - path: k8s/apps/platform/cert-manager/overlays/management
+                - path: k8s/apps/node-feature-discovery/overlays/control-plane
+                  exclude: true
+                - path: k8s/apps/platform/node-feature-discovery/overlays/management
   template:
     metadata:
       name: '{{.name}}-{{ if eq (index (splitList "/" .path.path) 2) "platform" }}{{ index (splitList "/" .path.path) 3 }}{{ else }}{{ index (splitList "/" .path.path) 2 }}{{ end }}'
