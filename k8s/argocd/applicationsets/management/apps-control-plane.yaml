@@ -43,8 +43,6 @@ spec:
                 - path: k8s/apps/platform/kubevirt/overlays/management
                 - path: k8s/apps/platform/local-provisioner/overlays/management
                 - path: k8s/apps/platform/prometheus-crds/overlays/management
-                - path: k8s/apps/actualbudget/overlays/control-plane
-                  exclude: true
                 - path: k8s/apps/workloads/actualbudget/overlays/management
   template:
     metadata:
