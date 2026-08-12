@@ -420,7 +420,7 @@ Prometheus migration remains deferred because the live Application is Progressin
 
 Cilium and Argo self-management remain deferred by policy.
 
-### Most recent Phase 3 batch: Alloy and HWPO Flex
+### Completed Phase 3 batch: Alloy and HWPO Flex
 
 Staging commit `0de110c` adds these normalized paths:
 
@@ -452,15 +452,55 @@ Automated prune and self-heal are active again for both Applications.
 
 Cleanup commit `6b576f2` removes both old management paths and their ApplicationSet exclusions.
 
+Commit `6328c75` records the result. The root and both Applications are Healthy and Synced at this revision.
+
+The final inventory contains 27 Applications. The ApplicationSet generates 25 Applications. Argo reports zero shared-resource warnings.
+
+### Current Phase 3 batch: ExternalDNS, Home Assistant, Loki, and Unpoller
+
+This batch uses these normalized paths:
+
+- `k8s/apps/platform/external-dns/overlays/management`
+- `k8s/apps/workloads/home-assistant/overlays/management`
+- `k8s/apps/platform/loki/overlays/management`
+- `k8s/apps/platform/unpoller/overlays/management`
+
+All four Applications are Healthy. Each Application reports only its ExternalSecret as OutOfSync.
+
+Kubernetes adds default fields to each ExternalSecret. The normalized source includes these explicit values.
+
+The old and new renders are byte-identical after this correction:
+
+| Component | Resources | Render SHA-256 |
+| --- | ---: | --- |
+| ExternalDNS | 15 | `d985c213f3eea163a056f516bf09c074b7c1568d71bb36faf20afcad8d3d19bf` |
+| Home Assistant | 9 | `f590cc4afefdc58265ddf953630155025edd3e7dd4ca8b0fcef1d69e8a5e04f2` |
+| Loki | 11 | `d0c32e1a772aaa2ee7cbe4f59b7da65ee734957e9124933379e5db7f674c0bbd` |
+| Unpoller | 5 | `83b3785a0ae377cf9e184ba702b2acdd2ca234f36acf2cdf6bd04e01d8e23712` |
+
+The server-side diff is empty for all four renders. Home Assistant and Loki produce existing Pod Security warnings only.
+
+The saved state is in `/tmp/k8s-homelab-externaldns-ha-loki-unpoller-path-switch-2026-08-12.T3r4kL`.
+
+The live switch must preserve these resources:
+
+- All four Application UIDs
+- The ExternalDNS Deployment, pod, and ExternalSecret UIDs
+- The Home Assistant Deployment, pod, ExternalSecret, PV, and PVC UIDs
+- The Loki StatefulSet, pod, ExternalSecret, PV, and PVC UIDs
+- The Unpoller Deployment, pod, and ExternalSecret UIDs
+
 Next procedure:
 
-1. Publish `6b576f2` and the plan update.
-2. Make sure that both old management paths are absent from `main`.
-3. Do a hard refresh of both Applications.
-4. Make sure that both Applications remain Healthy and Synced.
-5. Sync only `argocd` with pruning disabled.
-6. Make sure that both obsolete live exclusions are absent.
+1. Publish the staging commit.
+2. Make sure that all normalized paths exist on `main`.
+3. Sync only `argocd` with pruning disabled.
+4. Make sure that all four Application paths change in place.
+5. Sync each component with pruning disabled.
+6. Make sure that all four Applications are Healthy and Synced.
 7. Make sure that all saved UIDs remain equal.
+8. Restore automated sync for each component.
+9. Remove the four old paths in a cleanup-only commit.
 
 ### Previous Phase 3 migration: Actual Budget
 
@@ -664,6 +704,7 @@ Do not use one large rename commit. A large commit makes Argo review and rollbac
 | Prometheus CRDs | `/tmp/k8s-homelab-prometheus-crds-path-switch-2026-08-12.joQUfv` |
 | Actual Budget | `/tmp/k8s-homelab-actualbudget-path-switch-2026-08-12.v4VZCi` |
 | Alloy and HWPO Flex | `/tmp/k8s-homelab-alloy-hwpo-path-switch-2026-08-12.J2IJ3R` |
+| ExternalDNS, Home Assistant, Loki, and Unpoller | `/tmp/k8s-homelab-externaldns-ha-loki-unpoller-path-switch-2026-08-12.T3r4kL` |
 
 These paths are local and temporary. Do not depend on them as permanent backup storage.
 

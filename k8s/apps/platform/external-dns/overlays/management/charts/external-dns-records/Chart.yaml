@@ -1,0 +1,6 @@
+apiVersion: v2
+name: external-dns-records
+description: Static DNS records rendered as ExternalDNS DNSEndpoint resources.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

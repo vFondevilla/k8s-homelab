@@ -1,0 +1,31 @@
+records:
+  - name: gx10
+    dnsName: gx10.fondevilla.io
+    targets:
+      - 10.1.0.112
+  - name: mini
+    dnsName: mini.fondevilla.io
+    targets:
+      - 10.1.0.107
+  - name: node05
+    dnsName: node05.fondevilla.io
+    targets:
+      - 10.1.0.15
+  - name: llm01
+    dnsName: llm01.fondevilla.io
+    targets:
+      - 10.1.0.162
+  - name: llm02
+    dnsName: llm02.fondevilla.io
+    recordType: CNAME
+    targets:
+      - gx10.fondevilla.io
+  - name: ai395
+    dnsName: ai395.fondevilla.io
+    recordType: CNAME
+    targets:
+      - llm01.fondevilla.io
+  - name: meshcentral.fondevilla.io
+    dnsName: meshcentral.fondevilla.io
+    targets:
+      - 10.1.0.4
