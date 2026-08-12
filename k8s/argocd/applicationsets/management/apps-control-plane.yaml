@@ -28,6 +28,12 @@ spec:
                 # Move components one at a time while retaining their existing
                 # Application identity. Exclusions take precedence over the
                 # legacy wildcard, and normalized paths are added explicitly.
+                - path: k8s/apps/alloy/overlays/control-plane
+                  exclude: true
+                - path: k8s/apps/platform/alloy/overlays/management
+                - path: k8s/apps/hwpo-flex/overlays/control-plane
+                  exclude: true
+                - path: k8s/apps/workloads/hwpo-flex/overlays/management
                 - path: k8s/apps/1password-connect/overlays/control-plane
                   exclude: true
                 - path: k8s/apps/platform/1password-connect/overlays/management

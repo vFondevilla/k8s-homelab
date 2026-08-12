@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: hwpo-flex
+
+resources:
+  - ../../base
+
+images:
+  # The repository has no existing hwpo-flex image reference. The Harbor
+  # internal-image convention is used here; replace the repository/tag with
+  # the application's published image and immutable commit SHA before deploy.
+  - name: hwpo-flex
+    newName: zot.apps.fondevilla.io/hwpo-flex
+    newTag: latest
+
