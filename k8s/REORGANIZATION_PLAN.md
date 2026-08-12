@@ -64,7 +64,7 @@ If Argo shows an unexpected prune, replacement, or shared-resource warning, stop
 
 ## Current live state
 
-The state in this section was current after the Actual Budget migration on 2026-08-12.
+The state in this section was current after the Alloy and HWPO Flex migrations on 2026-08-12.
 
 - The manual root Application is `argocd`.
 - The root owns only `apps-control-plane`.
@@ -394,6 +394,8 @@ Component gate:
 | Local Path Provisioner | `801845b` | `99dfbf5` | Nine resources synced. Deployment and pod UIDs stayed equal. |
 | Prometheus CRDs | `b7bd2b4` | `4df1157` | Outer Application synced. Child and ten CRD UIDs stayed equal. |
 | Actual Budget | `3429a44` | `18ec096` | Seven resources synced. Workload and storage UIDs stayed equal. |
+| Alloy | `0de110c` | `6b576f2` | Seven resources synced. The Application, DaemonSet, and pod UIDs stayed equal. |
+| HWPO Flex | `0de110c` | `6b576f2` | Six resources synced. Workload and storage UIDs stayed equal. |
 
 All completed migrations preserved these live values:
 
@@ -414,13 +416,53 @@ Prometheus CRDs use a nested Application. The outer sync did not operate the chi
 
 NFS migration remains deferred. Five Bound volumes use its StorageClass. These volumes include Kamaji etcd and Loki volumes.
 
-Alloy migration remains deferred. Its source contains a large vendored Helm chart and uses `bases/`.
-
 Prometheus migration remains deferred because the live Application is Progressing and OutOfSync.
 
 Cilium and Argo self-management remain deferred by policy.
 
-### Most recent Phase 3 migration: Actual Budget
+### Most recent Phase 3 batch: Alloy and HWPO Flex
+
+Staging commit `0de110c` adds these normalized paths:
+
+- `k8s/apps/platform/alloy/overlays/management`
+- `k8s/apps/workloads/hwpo-flex/overlays/management`
+
+The Alloy old and new renders are byte-identical. Both renders contain seven resources.
+
+The HWPO Flex old and new renders are byte-identical. Both renders contain six resources.
+
+The live migration kept these identities:
+
+- Both Application UIDs
+- The Alloy DaemonSet UID
+- Both Alloy pod UIDs
+- The HWPO Flex Deployment UID
+- The HWPO Flex pod UID
+- The HWPO Flex PV and PVC UIDs
+
+The HWPO Flex PV and PVC remained Bound. The PV reclaim policy remained `Retain`.
+
+Both Applications remained Healthy and Synced through two hard-refresh cycles.
+
+The explicit sync requests used `prune: false`. Argo status retained stale `prune: true` data from the prior operations.
+
+The sync results contained only the expected resources. No resource was removed or replaced.
+
+Automated prune and self-heal are active again for both Applications.
+
+Cleanup commit `6b576f2` removes both old management paths and their ApplicationSet exclusions.
+
+Next procedure:
+
+1. Publish `6b576f2` and the plan update.
+2. Make sure that both old management paths are absent from `main`.
+3. Do a hard refresh of both Applications.
+4. Make sure that both Applications remain Healthy and Synced.
+5. Sync only `argocd` with pruning disabled.
+6. Make sure that both obsolete live exclusions are absent.
+7. Make sure that all saved UIDs remain equal.
+
+### Previous Phase 3 migration: Actual Budget
 
 Staging commit `3429a44` adds this normalized path:
 
@@ -448,17 +490,6 @@ The migration kept all listed UIDs. The PV and PVC remained Bound. The StatefulS
 The seven-resource sync succeeded with pruning disabled. Automated prune and self-heal are active again.
 
 Cleanup commit `18ec096` removes the old path and the obsolete ApplicationSet exclusion.
-
-Next procedure:
-
-1. Publish `18ec096`.
-2. Make sure that the old path is absent from `main`.
-3. Do a hard refresh of `in-cluster-actualbudget`.
-4. Make sure that the Application remains Healthy and Synced.
-5. Sync only `argocd` with pruning disabled.
-6. Make sure that the obsolete live exclusion is absent.
-7. Make sure that all saved UIDs remain equal.
-8. Select the next Healthy and Synced workload.
 
 ## Phase 4: Separate the cluster lifecycle
 
@@ -632,6 +663,7 @@ Do not use one large rename commit. A large commit makes Argo review and rollbac
 | Local Path Provisioner | `/tmp/k8s-homelab-local-provisioner-path-switch-2026-08-12.Bv5o1H` |
 | Prometheus CRDs | `/tmp/k8s-homelab-prometheus-crds-path-switch-2026-08-12.joQUfv` |
 | Actual Budget | `/tmp/k8s-homelab-actualbudget-path-switch-2026-08-12.v4VZCi` |
+| Alloy and HWPO Flex | `/tmp/k8s-homelab-alloy-hwpo-path-switch-2026-08-12.J2IJ3R` |
 
 These paths are local and temporary. Do not depend on them as permanent backup storage.
 
