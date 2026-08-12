@@ -43,9 +43,12 @@ spec:
                 - path: k8s/apps/platform/kubevirt/overlays/management
                 - path: k8s/apps/platform/local-provisioner/overlays/management
                 - path: k8s/apps/platform/prometheus-crds/overlays/management
+                - path: k8s/apps/actualbudget/overlays/control-plane
+                  exclude: true
+                - path: k8s/apps/workloads/actualbudget/overlays/management
   template:
     metadata:
-      name: '{{.name}}-{{ if eq (index (splitList "/" .path.path) 2) "platform" }}{{ index (splitList "/" .path.path) 3 }}{{ else }}{{ index (splitList "/" .path.path) 2 }}{{ end }}'
+      name: '{{.name}}-{{ if or (eq (index (splitList "/" .path.path) 2) "platform") (eq (index (splitList "/" .path.path) 2) "workloads") }}{{ index (splitList "/" .path.path) 3 }}{{ else }}{{ index (splitList "/" .path.path) 2 }}{{ end }}'
     spec:
       project: default
       destination:

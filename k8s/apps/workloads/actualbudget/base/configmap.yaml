@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: actualbudget-config
+  namespace: actualbudget
+  labels:
+    app.kubernetes.io/name: actualbudget
+    app.kubernetes.io/component: config
+data:
+  ACTUAL_PORT: "5006"
