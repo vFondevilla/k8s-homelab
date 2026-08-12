@@ -42,8 +42,6 @@ spec:
                 - path: k8s/apps/platform/node-feature-discovery/overlays/management
                 - path: k8s/apps/platform/kubevirt/overlays/management
                 - path: k8s/apps/platform/local-provisioner/overlays/management
-                - path: k8s/apps/prometheus-crds/overlays/control-plane
-                  exclude: true
                 - path: k8s/apps/platform/prometheus-crds/overlays/management
   template:
     metadata:
