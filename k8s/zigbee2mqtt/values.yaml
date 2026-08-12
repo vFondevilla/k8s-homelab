@@ -82,7 +82,7 @@ zigbee2mqtt:
   homeassistant:
     enabled: true
     discovery_topic: 'homeassistant'
-    status_topic: 'hass/status'
+    status_topic: 'homeassistant/status'
     legacy_entity_attributes: true
     legacy_triggers: false
   # -- Optional: allow new devices to join.
@@ -90,6 +90,8 @@ zigbee2mqtt:
   # -- Locking devices from the network ( ieeeAddr )
   blocklist: []
   #  - '0x00158d0006c5e5d0'
+  device_options:
+    retain: true
   availability:
     active:
       # -- Time after which an active device will be marked as offline in

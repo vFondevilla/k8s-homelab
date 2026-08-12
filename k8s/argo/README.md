@@ -1,1 +1,0 @@
-age-op -d -k op://Personal/age -o argocd-repositories.yaml.decrypt argocd-repositories.yaml.age
