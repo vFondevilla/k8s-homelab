@@ -995,6 +995,8 @@ Duplicate application-root progress:
 - [x] Split and remove the duplicate Cluster API root.
 - [x] Remove the obsolete Cluster API Application wrapper.
 - [x] Move the cloud-underlay NFS CSI StorageClass to its normalized base.
+- [x] Remove the inactive Crossplane experiment.
+- [x] Remove the incomplete Kube-OVN values experiment.
 
 The split Cluster API resources now use four normalized locations:
 
@@ -1004,6 +1006,12 @@ The split Cluster API resources now use four normalized locations:
 - `fleet/classes/kamaji-kubevirt/`
 
 This cleanup does not add the new components to the live ApplicationSet.
+
+The management cluster had no Crossplane or Kube-OVN resources. Argo CD had no related Applications.
+
+The Crossplane Application targeted the wrong namespace. Its provider file did not contain provider configuration.
+
+The Kube-OVN files did not define a chart source or a Cilium chain. A future chain needs a complete tenant profile.
 
 Use this procedure for each candidate:
 
