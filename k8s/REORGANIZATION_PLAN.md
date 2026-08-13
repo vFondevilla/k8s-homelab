@@ -743,7 +743,9 @@ The Prometheus source now preserves both PV reclaim policies. It also specifies 
 
 The local rollback snapshot is `/tmp/k8s-homelab-remaining-apps-path-switch-2026-08-13.hZzKuE`.
 
-The cleanup removes ten clean legacy management paths. The cleanup keeps the old Argo CD path because it contains user changes.
+Cleanup commit `90888f0` removes ten clean legacy management paths.
+
+The cleanup keeps the old Argo CD path because it contains user changes.
 
 ### Previous Phase 3 migration: Actual Budget
 
