@@ -1,2 +1,0 @@
-export OP_CONNECT_TOKEN=$(op connect token create "external-secret-operator" --server "kubernetes" --vault "Lab")
-kubectl create secret -n external-secrets generic onepassword-connect-token --from-literal=token=$OP_CONNECT_TOKEN
