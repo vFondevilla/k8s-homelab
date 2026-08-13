@@ -10,7 +10,7 @@ spec:
   project: default
   source:
     repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
-    path: k8s/apps/platform/zot/overlays/management
+    path: k8s/apps/workloads/zot/overlays/management
     targetRevision: HEAD
   syncPolicy:
     # automated: {}

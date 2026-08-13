@@ -30,5 +30,5 @@ The management Argo root does not include this Application.
 Operate this command from the repository root:
 
 ```sh
-kustomize build --enable-helm k8s/apps/platform/zot/overlays/management
+kustomize build --enable-helm k8s/apps/workloads/zot/overlays/management
 ```

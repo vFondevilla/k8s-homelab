@@ -850,7 +850,7 @@ The staged Rook Application uses the normalized overlay. The management Argo roo
 
 The cleanup removes the unused generated operator manifest for chart `v1.16.2`.
 
-The Zot configuration now uses `k8s/apps/platform/zot/`.
+The Zot configuration now uses `k8s/apps/workloads/zot/`.
 
 The live Helm release remains unchanged. The new overlay produces the same five live chart resources and exact ConfigMap data.
 
@@ -1017,7 +1017,7 @@ Duplicate application-root progress:
 - [x] Move Velero to `apps/platform/` and remove its unused encrypted credentials file.
 - [x] Move Prometheus SNMP Exporter to `apps/platform/`.
 - [x] Move Rook Ceph from `cloud-underlay/` to `apps/platform/`.
-- [x] Move Zot from `cloud-underlay/` to `apps/platform/`.
+- [x] Move Zot from `cloud-underlay/` to `apps/workloads/`.
 
 The split Cluster API resources now use four normalized locations:
 
