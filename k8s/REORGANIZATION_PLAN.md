@@ -396,6 +396,10 @@ Component gate:
 | Actual Budget | `3429a44` | `18ec096` | Seven resources synced. Workload and storage UIDs stayed equal. |
 | Alloy | `0de110c` | `6b576f2` | Seven resources synced. The Application, DaemonSet, and pod UIDs stayed equal. |
 | HWPO Flex | `0de110c` | `6b576f2` | Six resources synced. Workload and storage UIDs stayed equal. |
+| ExternalDNS | `c158114` | `9db7ba4` | 15 resources synced. The Application, Deployment, pod, and ExternalSecret UIDs stayed equal. |
+| Home Assistant | `c158114` | `9db7ba4` | Nine resources synced. Workload, ExternalSecret, and storage UIDs stayed equal. |
+| Loki | `c158114` | `9db7ba4` | 11 resources synced. Workload, ExternalSecret, and storage UIDs stayed equal. |
+| Unpoller | `c158114` | `9db7ba4` | Five resources synced. The Application, Deployment, pod, and ExternalSecret UIDs stayed equal. |
 
 All completed migrations preserved these live values:
 
@@ -456,7 +460,9 @@ Commit `6328c75` records the result. The root and both Applications are Healthy 
 
 The final inventory contains 27 Applications. The ApplicationSet generates 25 Applications. Argo reports zero shared-resource warnings.
 
-### Current Phase 3 batch: ExternalDNS, Home Assistant, Loki, and Unpoller
+### Most recent Phase 3 batch: ExternalDNS, Home Assistant, Loki, and Unpoller
+
+Staging commit `c158114` adds the normalized paths and explicit ExternalSecret defaults.
 
 This batch uses these normalized paths:
 
@@ -465,7 +471,7 @@ This batch uses these normalized paths:
 - `k8s/apps/platform/loki/overlays/management`
 - `k8s/apps/platform/unpoller/overlays/management`
 
-All four Applications are Healthy. Each Application reports only its ExternalSecret as OutOfSync.
+Before the migration, all four Applications were Healthy. Each Application reported only its ExternalSecret as OutOfSync.
 
 Kubernetes adds default fields to each ExternalSecret. The normalized source includes these explicit values.
 
@@ -482,7 +488,7 @@ The server-side diff is empty for all four renders. Home Assistant and Loki prod
 
 The saved state is in `/tmp/k8s-homelab-externaldns-ha-loki-unpoller-path-switch-2026-08-12.T3r4kL`.
 
-The live switch must preserve these resources:
+The live switch kept these resources:
 
 - All four Application UIDs
 - The ExternalDNS Deployment, pod, and ExternalSecret UIDs
@@ -490,17 +496,27 @@ The live switch must preserve these resources:
 - The Loki StatefulSet, pod, ExternalSecret, PV, and PVC UIDs
 - The Unpoller Deployment, pod, and ExternalSecret UIDs
 
+All four explicit sync operations used `prune: false`. The sync results contained 15, 9, 11, and 5 resources.
+
+All four Applications remained Healthy and Synced through two hard-refresh cycles.
+
+Automated prune and self-heal are active again for all four Applications.
+
+The Home Assistant and Loki PVs and PVCs remained Bound. Both PV reclaim policies remained `Retain`.
+
+Cleanup commit `9db7ba4` removes all four old paths and their ApplicationSet exclusions.
+
+The inventory contains 27 Applications. The ApplicationSet generates 25 Applications. Argo reports zero shared-resource warnings.
+
 Next procedure:
 
-1. Publish the staging commit.
-2. Make sure that all normalized paths exist on `main`.
-3. Sync only `argocd` with pruning disabled.
-4. Make sure that all four Application paths change in place.
-5. Sync each component with pruning disabled.
-6. Make sure that all four Applications are Healthy and Synced.
+1. Publish `9db7ba4` and the plan update.
+2. Make sure that all four old paths are absent from `main`.
+3. Do a hard refresh of all four Applications.
+4. Make sure that all four Applications remain Healthy and Synced.
+5. Sync only `argocd` with pruning disabled.
+6. Make sure that all four obsolete live exclusions are absent.
 7. Make sure that all saved UIDs remain equal.
-8. Restore automated sync for each component.
-9. Remove the four old paths in a cleanup-only commit.
 
 ### Previous Phase 3 migration: Actual Budget
 
