@@ -960,8 +960,8 @@ Removal candidates:
 
 - [x] `k8s/0-cluster-applicationSets/`
 - [x] `k8s/applicationSets/`
-- `k8s/1-control-plane/`
-- `k8s/1-workload-cluster/`
+- [x] `k8s/1-control-plane/`
+- [x] `k8s/1-workload-cluster/`
 - [x] `k8s/clusters/workload/`
 - [x] the old `k8s/clusters/control-plane/`
 - [x] ten duplicate Phase 3 management paths
@@ -981,7 +981,7 @@ Numbered-root progress:
 - [x] Remove the empty Kube-OVN Application file.
 - [x] Move the tenant Local Path Provisioner configuration to `apps/platform/`.
 - [x] Migrate both NFS StorageClass files.
-- [ ] Classify and migrate the Omni manifests.
+- [x] Remove the incomplete Omni Kubernetes experiment.
 
 Use this procedure for each candidate:
 
@@ -991,7 +991,7 @@ Use this procedure for each candidate:
 4. Observe two clean Argo sync cycles.
 5. Remove the old path in a dedicated commit.
 
-The numbered roots now contain only the Omni manifests.
+The numbered roots are removed.
 
 The live management Cilium and KubeVirt Applications use normalized paths. No live Application used the removed files.
 
@@ -1005,7 +1005,9 @@ The live `nfs-csi` StorageClass uses the tenant address. A Bound Prometheus PVC 
 
 The management cluster has no registered NFS CSI driver. Keep the new component outside Argo discovery during this review.
 
-The Omni files do not define a complete deployment source. Do not create an Argo Application until the chart source and version are known.
+The removed Omni files had no complete deployment source. The management cluster had no Omni resources.
+
+The separate Ansible Omni deployment remains unchanged as user work.
 
 ## Repository validation
 
