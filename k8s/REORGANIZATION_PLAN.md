@@ -1001,6 +1001,7 @@ Duplicate application-root progress:
 - [x] Move Democratic CSI from `cloud-underlay/` to `apps/platform/`.
 - [x] Move Multus to `apps/platform/` and preserve the live configuration.
 - [x] Move Velero to `apps/platform/` and remove its unused encrypted credentials file.
+- [x] Move Prometheus SNMP Exporter to `apps/platform/`.
 
 The split Cluster API resources now use four normalized locations:
 
@@ -1022,6 +1023,8 @@ CloudNativePG and Democratic CSI remain outside Argo discovery. The management c
 Multus remains outside Argo discovery. The management DaemonSet remains manually installed.
 
 Velero remains outside Argo discovery. The staged Application now uses the normalized path.
+
+Prometheus SNMP Exporter remains outside Argo discovery. The staged Application now uses the normalized path.
 
 Use this procedure for each candidate:
 

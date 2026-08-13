@@ -1,0 +1,16 @@
+serviceMonitor:
+  enabled: true
+  namespace: prom
+  params:
+    - name: microtik-storage
+      target: 10.1.0.254
+      interval: 10s
+      scrapeTimeout: 10s
+    - name: unifi-core
+      target: 10.1.0.147
+      interval: 10s
+      scrapeTimeout: 10s
+    - name: unifi-router
+      target: 10.1.0.1
+      interval: 10s
+      scrapeTimeout: 10s
