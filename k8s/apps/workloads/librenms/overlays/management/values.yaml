@@ -1,0 +1,53 @@
+librenms:
+  timezone: Europe/Madrid
+
+  extraEnvs:
+    - name: APP_TRUSTED_PROXIES
+      value: 10.244.0.0/16
+    - name: SESSION_SECURE_COOKIE
+      value: "true"
+
+  frontend:
+    replicas: 1
+
+  poller:
+    replicas: 2
+
+  rrdcached:
+    persistence:
+      enabled: true
+      journal:
+        size: 1Gi
+        storageClassName: nfs-client
+      rrdcached:
+        size: 10Gi
+        storageClassName: nfs-client
+
+ingress:
+  enabled: true
+  className: cilium
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: librenms.apps.fondevilla.io
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: librenms-tls
+      hosts:
+        - librenms.apps.fondevilla.io
+
+mysql:
+  standalone:
+    persistence:
+      enabled: true
+      size: 8Gi
+      storageClass: nfs-client
+
+redis:
+  master:
+    persistence:
+      enabled: true
+      size: 8Gi
+      storageClass: nfs-client

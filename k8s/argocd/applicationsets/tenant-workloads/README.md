@@ -1,5 +1,11 @@
 # Tenant workloads ApplicationSets
 
-This directory owns optional end-user workload ApplicationSets for tenant
-clusters. Workloads are selected by explicit fleet profile labels; they must
-never target the management cluster by default.
+This directory owns optional workload ApplicationSets for tenant clusters.
+
+The workload selector requires `type=tenant` and explicit fleet labels.
+
+It rejects `type=control-plane`.
+
+Generated Application names include the tenant cluster name and workload component name.
+
+The active Argo root does not include this staged ApplicationSet.

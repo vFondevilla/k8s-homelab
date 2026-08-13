@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: n8n
+  namespace: n8n
+  labels:
+    app: n8n
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate  # Required for RWO volume
+  selector:
+    matchLabels:
+      app: n8n
+  template:
+    metadata:
+      labels:
+        app: n8n
+    spec:
+      containers:
+        - name: n8n
+          image: docker.n8n.io/n8nio/n8n:latest
+          ports:
+            - name: http
+              containerPort: 5678
+            - name: runner-broker
+              containerPort: 5679
+          env:
+            - name: N8N_HOST
+              value: "n8n.fondevilla.io"
+            - name: N8N_PORT
+              value: "5678"
+            - name: N8N_PROTOCOL
+              value: "https"
+            - name: N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS
+              value: "true"
+            - name: N8N_RUNNERS_ENABLED
+              value: "true"
+            - name: N8N_RUNNERS_MODE
+              value: "external"
+            - name: N8N_RUNNERS_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-runner-token
+                  key: token
+            - name: N8N_RUNNERS_BROKER_LISTEN_ADDRESS
+              value: "0.0.0.0"
+            - name: N8N_DIAGNOSTICS_ENABLED
+              value: "false"
+            - name: NODE_ENV
+              value: "production"
+            - name: WEBHOOK_URL
+              value: "https://n8n-webhook.fondevilla.io/"
+            - name: GENERIC_TIMEZONE
+              value: "Europe/Madrid"
+            - name: TZ
+              value: "Europe/Madrid"
+          volumeMounts:
+            - name: data
+              mountPath: /home/node/.n8n
+            - name: files
+              mountPath: /files
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 5678
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 5678
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: n8n-data
+        - name: files
+          hostPath:
+            path: /opt/k8s-data/n8n-files
+            type: DirectoryOrCreate

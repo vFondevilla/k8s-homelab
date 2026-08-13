@@ -24,10 +24,8 @@ spec:
               repoURL: git@github.com:vFondevilla/k8s-homelab.git
               revision: main
               directories:
-                - path: k8s/apps/*/overlays/control-plane
-                # Move components one at a time while retaining their existing
-                # Application identity. Exclusions take precedence over the
-                # legacy wildcard, and normalized paths are added explicitly.
+                # Keep each path explicit. This prevents a staged overlay from
+                # entering the management cluster by directory convention.
                 - path: k8s/apps/platform/alloy/overlays/management
                 - path: k8s/apps/workloads/hwpo-flex/overlays/management
                 - path: k8s/apps/platform/external-dns/overlays/management
@@ -45,17 +43,9 @@ spec:
                 - path: k8s/apps/platform/prometheus/overlays/management
                 - path: k8s/apps/platform/cilium/overlays/management
                 - path: k8s/apps/platform/cluster-api/overlays/management
-                - path: k8s/apps/1password-connect/overlays/control-plane
-                  exclude: true
                 - path: k8s/apps/platform/1password-connect/overlays/management
-                - path: k8s/apps/external-secrets-operator/overlays/control-plane
-                  exclude: true
                 - path: k8s/apps/platform/external-secrets-operator/overlays/management
-                - path: k8s/apps/cert-manager/overlays/control-plane
-                  exclude: true
                 - path: k8s/apps/platform/cert-manager/overlays/management
-                - path: k8s/apps/node-feature-discovery/overlays/control-plane
-                  exclude: true
                 - path: k8s/apps/platform/node-feature-discovery/overlays/management
                 - path: k8s/apps/platform/kubevirt/overlays/management
                 - path: k8s/apps/platform/local-provisioner/overlays/management

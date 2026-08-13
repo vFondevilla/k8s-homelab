@@ -1,0 +1,176 @@
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: Cluster
+metadata:
+  name: foundry-poc
+  namespace: default
+  labels:
+    cni: cilium
+spec:
+  clusterNetwork:
+    pods:
+      cidrBlocks:
+      - 10.243.0.0/16
+    services:
+      cidrBlocks:
+      - 10.95.0.0/16
+  controlPlaneRef:
+    apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+    kind: KubeadmControlPlane
+    name: foundry-poc-control-plane
+    namespace: default
+  infrastructureRef:
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+    kind: KubevirtCluster
+    name: foundry-poc
+    namespace: default
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+kind: KubevirtCluster
+metadata:
+  name: foundry-poc
+  namespace: default
+spec:
+  controlPlaneServiceTemplate:
+    spec:
+      type: LoadBalancer
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+kind: KubevirtMachineTemplate
+metadata:
+  name: foundry-poc-control-plane
+  namespace: default
+spec:
+  template:
+    spec:
+      virtualMachineBootstrapCheck:
+        checkStrategy: ssh
+      virtualMachineTemplate:
+        metadata:
+          namespace: default
+        spec:
+          runStrategy: Always
+          template:
+            spec:
+              domain:
+                cpu:
+                  cores: 2
+                devices:
+                  disks:
+                  - disk:
+                      bus: virtio
+                    name: containervolume
+                  networkInterfaceMultiqueue: true
+                memory:
+                  guest: 4Gi
+              evictionStrategy: External
+              volumes:
+              - containerDisk:
+                  image: quay.io/capk/ubuntu-2404-container-disk:v1.32.1
+                name: containervolume
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+kind: KubeadmControlPlane
+metadata:
+  name: foundry-poc-control-plane
+  namespace: default
+spec:
+  kubeadmConfigSpec:
+    clusterConfiguration:
+      controllerManager:
+        extraArgs:
+          allocate-node-cidrs: "false"
+      networking:
+        dnsDomain: foundry-poc.default.local
+        podSubnet: 10.243.0.0/16
+        serviceSubnet: 10.95.0.0/16
+    initConfiguration:
+      skipPhases:
+        - addon/kube-proxy
+      nodeRegistration:
+        criSocket: unix:///var/run/containerd/containerd.sock
+    joinConfiguration:
+      skipPhases:
+        - addon/kube-proxy
+      nodeRegistration:
+        criSocket: unix:///var/run/containerd/containerd.sock
+  machineTemplate:
+    infrastructureRef:
+      apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+      kind: KubevirtMachineTemplate
+      name: foundry-poc-control-plane
+      namespace: default
+  replicas: 1
+  version: v1.32.1
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+kind: KubevirtMachineTemplate
+metadata:
+  name: foundry-poc-md-0
+  namespace: default
+spec:
+  template:
+    spec:
+      virtualMachineBootstrapCheck:
+        checkStrategy: ssh
+      virtualMachineTemplate:
+        metadata:
+          namespace: default
+        spec:
+          runStrategy: Always
+          template:
+            spec:
+              domain:
+                cpu:
+                  cores: 2
+                devices:
+                  disks:
+                  - disk:
+                      bus: virtio
+                    name: containervolume
+                  networkInterfaceMultiqueue: true
+                memory:
+                  guest: 4Gi
+              evictionStrategy: External
+              volumes:
+              - containerDisk:
+                  image: quay.io/capk/ubuntu-2404-container-disk:v1.32.1
+                name: containervolume
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+kind: KubeadmConfigTemplate
+metadata:
+  name: foundry-poc-md-0
+  namespace: default
+spec:
+  template:
+    spec:
+      joinConfiguration:
+        nodeRegistration:
+          kubeletExtraArgs: {}
+          criSocket: unix:///var/run/containerd/containerd.sock
+---
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: MachineDeployment
+metadata:
+  name: foundry-poc-md-0
+  namespace: default
+spec:
+  clusterName: foundry-poc
+  replicas: 1
+  selector:
+    matchLabels: null
+  template:
+    spec:
+      bootstrap:
+        configRef:
+          apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+          kind: KubeadmConfigTemplate
+          name: foundry-poc-md-0
+          namespace: default
+      clusterName: foundry-poc
+      infrastructureRef:
+        apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+        kind: KubevirtMachineTemplate
+        name: foundry-poc-md-0
+        namespace: default
+      version: v1.32.1

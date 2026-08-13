@@ -1,0 +1,35 @@
+# Traefik IngressRoute for n8n GUI (Tailnet access)
+# Note: k0s includes Traefik by default
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: n8n-gui
+  namespace: n8n
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`n8n.fondevilla.io`)
+      kind: Rule
+      services:
+        - name: n8n
+          port: 5678
+  tls:
+    certResolver: letsencrypt
+---
+# Webhook routes (accessed via Cloudflare Tunnel -> NodePort)
+# This IngressRoute is optional if using NodePort directly
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: n8n-webhook
+  namespace: n8n
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`n8n-webhook.fondevilla.io`) && (PathPrefix(`/webhook/`) || PathPrefix(`/webhook-test/`))
+      kind: Rule
+      services:
+        - name: n8n
+          port: 5678

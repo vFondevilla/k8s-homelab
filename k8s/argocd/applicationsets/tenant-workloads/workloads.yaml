@@ -1,0 +1,53 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: apps-workload
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  # Transition guard: keep generated tenant Applications when this source is
+  # relocated or temporarily removed from the bootstrap root.
+  syncPolicy:
+    applicationsSync: create-update
+    preserveResourcesOnDeletion: true
+  goTemplate: true
+  ignoreApplicationDifferences:
+    - jsonPointers:
+        - /spec/syncPolicy
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  fleet.fondevilla.io/role: tenant
+                  fleet.fondevilla.io/workloads: enabled
+                matchExpressions:
+                  - key: type
+                    operator: NotIn
+                    values:
+                      - control-plane
+          - git:
+              repoURL: git@github.com:vFondevilla/k8s-homelab.git
+              revision: main
+              directories:
+                - path: k8s/apps/workloads/*/overlays/tenant
+  template:
+    metadata:
+      name: '{{.name}}-{{ index (splitList "/" .path.path) 3 }}'
+    spec:
+      project: tenant
+      destination:
+        server: "{{.server}}"
+      source:
+        repoURL: git@github.com:vFondevilla/k8s-homelab.git
+        targetRevision: main
+        path: "{{.path.path}}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true

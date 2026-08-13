@@ -1,10 +1,9 @@
 # Management Applications
 
-This directory owns Argo CD `Application` resources for the existing
-management cluster. Application names, destinations, and sync policies must be
-preserved during migration unless an explicit architecture decision changes
-them.
+This directory contains staged Argo CD `Application` resources for the management cluster.
 
-Only applications with a renderable, verified source are included in the new
-root. Storage and backup wrappers remain staged here but are excluded from the
-active Kustomization until their legacy sources are normalized.
+The active Argo root does not include this directory. The management ApplicationSet owns active component Applications.
+
+Use these wrappers only for components that are outside ApplicationSet discovery.
+
+Before you activate a wrapper, compare its name, destination, source, and sync policy with the live inventory.

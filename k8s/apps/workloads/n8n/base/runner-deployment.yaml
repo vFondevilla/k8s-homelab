@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: n8n-python-runner
+  namespace: n8n
+  labels:
+    app: n8n-python-runner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: n8n-python-runner
+  template:
+    metadata:
+      labels:
+        app: n8n-python-runner
+    spec:
+      containers:
+        - name: runner
+          image: n8nio/runners:stable
+          env:
+            - name: N8N_RUNNERS_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-runner-token
+                  key: token
+            - name: N8N_RUNNERS_MAX_CONCURRENCY
+              value: "5"
+            - name: N8N_RUNNERS_TASK_BROKER_URI
+              value: "http://n8n:5679"
+            - name: N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT
+              value: "150"
+            - name: N8N_RUNNERS_STDLIB_ALLOW
+              value: "json,re"
+            - name: N8N_RUNNERS_LAUNCHER_LOG_LEVEL
+              value: "debug"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

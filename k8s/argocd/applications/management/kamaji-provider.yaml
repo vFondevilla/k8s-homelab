@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kamaji-provider
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "25"
+spec:
+  destination:
+    namespace: kamaji-system
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    repoURL: git@github.com:vFondevilla/k8s-homelab.git
+    path: k8s/apps/platform/kamaji-provider/overlays/management
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    automated:
+      prune: false
+      selfHeal: true

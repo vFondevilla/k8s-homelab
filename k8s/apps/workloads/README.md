@@ -1,6 +1,9 @@
 # Workload components
 
-End-user services belong under this directory. Components should use the same
-`base/` plus role/profile overlay convention as platform components.
+User services belong under this directory.
+
+Each component uses one `base/` and one or more role overlays.
+
+The standard roles are `management`, `tenant`, and `vps`.
 
 Argo CD `Application` wrappers remain under `k8s/argocd/`.

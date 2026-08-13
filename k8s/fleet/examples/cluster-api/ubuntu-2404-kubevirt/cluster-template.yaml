@@ -1,0 +1,167 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ${NAMESPACE=${CLUSTER_NAME}}
+---
+apiVersion: cluster.x-k8s.io/v1beta2
+kind: Cluster
+metadata:
+  name: ${CLUSTER_NAME}
+  namespace: ${NAMESPACE=${CLUSTER_NAME}}
+spec:
+  clusterNetwork:
+    pods:
+      cidrBlocks: ["10.244.0.0/16"]
+    services:
+      cidrBlocks: ["10.96.0.0/12"]
+  controlPlaneEndpoint:
+    host: ${CONTROL_PLANE_ENDPOINT_IP}
+    port: 6443
+  controlPlaneRef:
+    apiGroup: controlplane.cluster.x-k8s.io
+    kind: KubeadmControlPlane
+    name: ${CLUSTER_NAME}-control-plane
+  infrastructureRef:
+    apiGroup: infrastructure.cluster.x-k8s.io
+    kind: KubevirtCluster
+    name: ${CLUSTER_NAME}
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+kind: KubevirtCluster
+metadata:
+  name: ${CLUSTER_NAME}
+  namespace: ${NAMESPACE=${CLUSTER_NAME}}
+spec: {}
+---
+# Service that fronts the KubeVirt control-plane VM pods.
+# Requires a working LoadBalancer implementation (e.g. MetalLB).
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${CLUSTER_NAME}-apiserver
+  namespace: ${NAMESPACE=${CLUSTER_NAME}}
+spec:
+  type: LoadBalancer
+  loadBalancerIP: ${CONTROL_PLANE_ENDPOINT_IP}
+  selector:
+    app: ${CLUSTER_NAME}-cp
+  ports:
+    - name: kube-apiserver
+      port: 6443
+      targetPort: 6443
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+kind: KubevirtMachineTemplate
+metadata:
+  name: ${CLUSTER_NAME}-control-plane
+  namespace: ${NAMESPACE=${CLUSTER_NAME}}
+spec:
+  template:
+    spec:
+      virtualMachineTemplate:
+        spec:
+          runStrategy: Always
+          dataVolumeTemplates:
+            - metadata:
+                name: rootdisk-0
+              spec:
+                source:
+                  http:
+                    url: ${UBUNTU_2404_IMAGE_URL}
+                contentType: kubevirt
+                pvc:
+                  accessModes: ["ReadWriteOnce"]
+                  storageClassName: ${STORAGE_CLASS=nfs-client}
+                  volumeMode: Filesystem
+                  resources:
+                    requests:
+                      storage: ${CONTROL_PLANE_DISK_SIZE=30Gi}
+          template:
+            metadata:
+              labels:
+                app: ${CLUSTER_NAME}-cp
+            spec:
+              domain:
+                cpu:
+                  cores: ${CONTROL_PLANE_CORES=2}
+                resources:
+                  requests:
+                    memory: ${CONTROL_PLANE_MEMORY=4Gi}
+                devices:
+                  disks:
+                    - name: rootdisk
+                      disk:
+                        bus: virtio
+                    - name: cloudinitdisk
+                      disk:
+                        bus: virtio
+              volumes:
+                - name: rootdisk
+                  dataVolume:
+                    name: rootdisk-0
+                - name: cloudinitdisk
+                  cloudInitNoCloud:
+                    # Populated by CAPK from the Machine bootstrap secret.
+                    userDataBase64: ""
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+kind: KubeadmControlPlane
+metadata:
+  name: ${CLUSTER_NAME}-control-plane
+  namespace: ${NAMESPACE=${CLUSTER_NAME}}
+spec:
+  replicas: ${CONTROL_PLANE_MACHINE_COUNT=1}
+  version: ${KUBERNETES_VERSION=v1.30.0}
+  machineTemplate:
+    infrastructureRef:
+      apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+      kind: KubevirtMachineTemplate
+      name: ${CLUSTER_NAME}-control-plane
+  kubeadmConfigSpec:
+    clusterConfiguration:
+      kubernetesVersion: ${KUBERNETES_VERSION=v1.30.0}
+      controlPlaneEndpoint: "${CONTROL_PLANE_ENDPOINT_IP}:6443"
+      networking:
+        podSubnet: "10.244.0.0/16"
+        serviceSubnet: "10.96.0.0/12"
+    initConfiguration:
+      nodeRegistration:
+        kubeletExtraArgs: {}
+    joinConfiguration:
+      nodeRegistration:
+        kubeletExtraArgs: {}
+    preKubeadmCommands:
+      - swapoff -a
+      - sed -ri '/\sswap\s/s/^#?/#/' /etc/fstab
+      - |-
+        cat <<EOF | tee /etc/modules-load.d/k8s.conf
+        overlay
+        br_netfilter
+        EOF
+      - modprobe overlay
+      - modprobe br_netfilter
+      - |-
+        cat <<EOF | tee /etc/sysctl.d/k8s.conf
+        net.bridge.bridge-nf-call-iptables  = 1
+        net.bridge.bridge-nf-call-ip6tables = 1
+        net.ipv4.ip_forward                 = 1
+        EOF
+      - sysctl --system
+      - apt-get update
+      - apt-get install -y --no-install-recommends ca-certificates curl gpg
+      - mkdir -p /etc/apt/keyrings
+      - |-
+        curl -fsSL "https://pkgs.k8s.io/core:/stable:/${KUBERNETES_PKG_REPO_VERSION=v1.30}/deb/Release.key" | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+      - |-
+        echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/${KUBERNETES_PKG_REPO_VERSION=v1.30}/deb/ /" | tee /etc/apt/sources.list.d/kubernetes.list
+      - apt-get update
+      - apt-get install -y --no-install-recommends containerd kubelet kubeadm kubectl
+      - apt-mark hold kubelet kubeadm kubectl
+      - mkdir -p /etc/containerd
+      - containerd config default | tee /etc/containerd/config.toml
+      - sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
+      - systemctl enable --now containerd
+      - systemctl enable --now kubelet
+    postKubeadmCommands:
+      - |-
+        kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f "${CNI_MANIFEST_URL=https://raw.githubusercontent.com/flannel-io/flannel/v0.25.5/Documentation/kube-flannel.yml}"

@@ -1,0 +1,286 @@
+---
+# migrate-n8n.yml - Migrate n8n from Docker to k0s
+# Usage: ansible-playbook -i inventory.yml migrate-n8n.yml --tags <tag>
+# Tags: backup, stop-docker, restore, deploy, start-docker, verify
+
+- name: Migrate n8n from Docker to k0s
+  hosts: vps
+  gather_facts: true
+  become: true
+
+  vars:
+    docker_compose_path: "/opt/stacks/n8n"
+    docker_volume_name: "n8n_n8n_data"
+    backup_dir: "/opt/backups/n8n"
+    k8s_data_dir: "/opt/k8s-data/n8n"
+    k8s_files_dir: "/opt/k8s-data/n8n-files"
+    n8n_uid: 1000
+    n8n_gid: 1000
+    kubeconfig_path: "{{ lookup('env', 'HOME') }}/.kube/config"
+    cluster_context: "vps-cluster"
+
+  tasks:
+    # ============================================================
+    # BACKUP TASKS
+    # ============================================================
+    - name: Create backup directory
+      ansible.builtin.file:
+        path: "{{ backup_dir }}"
+        state: directory
+        mode: "0755"
+      tags:
+        - backup
+
+    - name: Check if n8n container is running
+      ansible.builtin.command:
+        cmd: docker compose -f {{ docker_compose_path }}/compose.yaml ps -q n8n
+      register: n8n_container
+      changed_when: false
+      failed_when: false
+      tags:
+        - backup
+
+    - name: Stop n8n container for consistent backup
+      ansible.builtin.command:
+        cmd: docker compose -f {{ docker_compose_path }}/compose.yaml stop n8n
+      when: n8n_container.stdout | length > 0
+      tags:
+        - backup
+
+    - name: Get current timestamp
+      ansible.builtin.set_fact:
+        backup_timestamp: "{{ ansible_date_time.iso8601_basic_short }}"
+      tags:
+        - backup
+
+    - name: Backup n8n data volume
+      ansible.builtin.shell:
+        cmd: |
+          docker run --rm \
+            -v {{ docker_volume_name }}:/source:ro \
+            -v {{ backup_dir }}:/backup \
+            alpine tar cvf /backup/n8n-data-{{ backup_timestamp }}.tar -C /source .
+      register: backup_result
+      tags:
+        - backup
+
+    - name: Backup local-files directory
+      ansible.builtin.copy:
+        src: "{{ docker_compose_path }}/local-files/"
+        dest: "{{ backup_dir }}/local-files/"
+        mode: preserve
+        remote_src: true
+      ignore_errors: true
+      tags:
+        - backup
+
+    - name: Start n8n container after backup
+      ansible.builtin.command:
+        cmd: docker compose -f {{ docker_compose_path }}/compose.yaml start n8n
+      when: n8n_container.stdout | length > 0
+      tags:
+        - backup
+
+    - name: List backup files
+      ansible.builtin.find:
+        paths: "{{ backup_dir }}"
+        patterns: "n8n-data-*.tar"
+      register: backup_files
+      tags:
+        - backup
+
+    - name: Display backup info
+      ansible.builtin.debug:
+        msg:
+          - "Backup completed successfully"
+          - "Backup file: {{ backup_files.files | sort(attribute='mtime', reverse=true) | first | default({}) | community.general.json_query('path') }}"
+          - "Backup size: {{ backup_files.files | sort(attribute='mtime', reverse=true) | first | default({}) | community.general.json_query('size') | default(0) | human_readable }}"
+      when: backup_files.files | length > 0
+      tags:
+        - backup
+
+    # ============================================================
+    # STOP DOCKER STACK
+    # ============================================================
+    - name: Stop entire n8n Docker stack
+      ansible.builtin.command:
+        cmd: docker compose -f {{ docker_compose_path }}/compose.yaml down
+      tags:
+        - never
+        - stop-docker
+
+    # ============================================================
+    # RESTORE TASKS
+    # ============================================================
+    - name: Find latest backup file
+      ansible.builtin.find:
+        paths: "{{ backup_dir }}"
+        patterns: "n8n-data-*.tar"
+      register: backup_files
+      tags:
+        - restore
+
+    - name: Set latest backup path
+      ansible.builtin.set_fact:
+        latest_backup: "{{ backup_files.files | sort(attribute='mtime', reverse=true) | first }}"
+      when: backup_files.files | length > 0
+      tags:
+        - restore
+
+    - name: Fail if no backup found
+      ansible.builtin.fail:
+        msg: "No backup file found in {{ backup_dir }}. Run backup first."
+      when: backup_files.files | length == 0
+      tags:
+        - restore
+
+    - name: Create k8s data directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: "0755"
+      loop:
+        - "{{ k8s_data_dir }}"
+        - "{{ k8s_files_dir }}"
+      tags:
+        - restore
+
+    - name: Extract backup to k8s data directory
+      ansible.builtin.unarchive:
+        src: "{{ latest_backup.path }}"
+        dest: "{{ k8s_data_dir }}"
+        remote_src: true
+      tags:
+        - restore
+
+    - name: Restore local-files
+      ansible.builtin.copy:
+        src: "{{ backup_dir }}/local-files/"
+        dest: "{{ k8s_files_dir }}/"
+        mode: preserve
+        remote_src: true
+      ignore_errors: true
+      tags:
+        - restore
+
+    - name: Set correct ownership for n8n data
+      ansible.builtin.file:
+        path: "{{ item }}"
+        owner: "{{ n8n_uid }}"
+        group: "{{ n8n_gid }}"
+        recurse: true
+      loop:
+        - "{{ k8s_data_dir }}"
+        - "{{ k8s_files_dir }}"
+      tags:
+        - restore
+
+    - name: Display restore info
+      ansible.builtin.debug:
+        msg:
+          - "Data restored to {{ k8s_data_dir }}"
+          - "Files restored to {{ k8s_files_dir }}"
+          - "Ownership set to {{ n8n_uid }}:{{ n8n_gid }}"
+      tags:
+        - restore
+
+    # ============================================================
+    # DEPLOY K8S MANIFESTS (runs from localhost)
+    # ============================================================
+- name: Deploy n8n to k8s
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tags:
+    - never
+    - deploy
+
+  vars:
+    kubeconfig_path: "{{ lookup('env', 'HOME') }}/.kube/config"
+    cluster_context: "vps-cluster"
+    manifests_path: "{{ playbook_dir }}/../k8s/apps/workloads/n8n/overlays/vps"
+
+  tasks:
+    - name: Apply n8n manifests with kustomize
+      ansible.builtin.command:
+        cmd: kubectl --context {{ cluster_context }} apply -k {{ manifests_path }}
+      register: kubectl_apply
+
+    - name: Display apply output
+      ansible.builtin.debug:
+        var: kubectl_apply.stdout_lines
+
+    - name: Wait for n8n deployment to be ready
+      ansible.builtin.command:
+        cmd: kubectl --context {{ cluster_context }} -n n8n rollout status deployment/n8n --timeout=120s
+      register: rollout_status
+
+    - name: Wait for runner deployment to be ready
+      ansible.builtin.command:
+        cmd: kubectl --context {{ cluster_context }} -n n8n rollout status deployment/n8n-python-runner --timeout=60s
+      register: runner_status
+
+    # ============================================================
+    # VERIFY TASKS
+    # ============================================================
+- name: Verify n8n deployment
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tags:
+    - verify
+
+  vars:
+    kubeconfig_path: "{{ lookup('env', 'HOME') }}/.kube/config"
+    cluster_context: "vps-cluster"
+
+  tasks:
+    - name: Get n8n pods
+      ansible.builtin.command:
+        cmd: kubectl --context {{ cluster_context }} -n n8n get pods -o wide
+      register: pods_output
+      changed_when: false
+
+    - name: Display pods
+      ansible.builtin.debug:
+        msg: "{{ pods_output.stdout_lines }}"
+
+    - name: Get n8n services
+      ansible.builtin.command:
+        cmd: kubectl --context {{ cluster_context }} -n n8n get svc
+      register: svc_output
+      changed_when: false
+
+    - name: Display services
+      ansible.builtin.debug:
+        msg: "{{ svc_output.stdout_lines }}"
+
+    - name: Check n8n health endpoint
+      ansible.builtin.command:
+        cmd: kubectl --context {{ cluster_context }} -n n8n exec deployment/n8n -- wget -qO- http://localhost:5678/healthz
+      register: health_check
+      changed_when: false
+      ignore_errors: true
+
+    - name: Display health status
+      ansible.builtin.debug:
+        msg: "Health check: {{ health_check.stdout | default('Failed to reach health endpoint') }}"
+
+    # ============================================================
+    # START DOCKER (ROLLBACK)
+    # ============================================================
+- name: Rollback - Start Docker stack
+  hosts: vps
+  gather_facts: false
+  become: true
+  tags:
+    - never
+    - start-docker
+
+  vars:
+    docker_compose_path: "/opt/stacks/n8n"
+
+  tasks:
+    - name: Start n8n Docker stack
+      ansible.builtin.command:
+        cmd: docker compose -f {{ docker_compose_path }}/compose.yaml up -d

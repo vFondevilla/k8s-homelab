@@ -1,0 +1,70 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: cilium
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  # Transition guard: removing or relocating this ApplicationSet must not
+  # delete generated tenant Applications or their workloads.
+  syncPolicy:
+    applicationsSync: create-update
+    preserveResourcesOnDeletion: true
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            fleet.fondevilla.io/role: tenant
+            fleet.fondevilla.io/cni: cilium
+          matchExpressions:
+            - key: type
+              operator: NotIn
+              values:
+                - control-plane
+  template:
+    metadata:
+      name: cilium-{{name}}
+    spec:
+      project: tenant
+      destination:
+        server: "{{server}}"
+        namespace: kube-system
+
+      source:
+        repoURL: git@github.com:vFondevilla/k8s-homelab.git
+        targetRevision: main
+        path: k8s/apps/platform/cilium/overlays/tenant
+
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+        automated:
+          prune: false
+          selfHeal: false
+      ignoreDifferences:
+        - group: ""
+          kind: ConfigMap
+          name: hubble-ca-cert
+          jsonPointers:
+          - /data/ca.crt
+        - group: ""
+          kind: Secret
+          name: hubble-relay-client-certs
+          jsonPointers:
+          - /data/ca.crt
+          - /data/tls.crt
+          - /data/tls.key
+        - group: ""
+          kind: Secret
+          name: hubble-server-certs
+          jsonPointers:
+          - /data/ca.crt
+          - /data/tls.crt
+          - /data/tls.key
+        - group: ""
+          kind: Secret
+          name: cilium-ca
+          jsonPointers:
+          - /data/ca.crt
+          - /data/ca.key
