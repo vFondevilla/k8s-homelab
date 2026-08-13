@@ -997,6 +997,8 @@ Duplicate application-root progress:
 - [x] Move the cloud-underlay NFS CSI StorageClass to its normalized base.
 - [x] Remove the inactive Crossplane experiment.
 - [x] Remove the incomplete Kube-OVN values experiment.
+- [x] Move CloudNativePG from `cloud-underlay/` to `apps/platform/`.
+- [x] Move Democratic CSI from `cloud-underlay/` to `apps/platform/`.
 
 The split Cluster API resources now use four normalized locations:
 
@@ -1012,6 +1014,8 @@ The management cluster had no Crossplane or Kube-OVN resources. Argo CD had no r
 The Crossplane Application targeted the wrong namespace. Its provider file did not contain provider configuration.
 
 The Kube-OVN files did not define a chart source or a Cilium chain. A future chain needs a complete tenant profile.
+
+CloudNativePG and Democratic CSI remain outside Argo discovery. The management cluster had no related resources.
 
 Use this procedure for each candidate:
 
