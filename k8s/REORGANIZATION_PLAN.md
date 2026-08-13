@@ -822,7 +822,7 @@ No live Application uses these roots. No repository file references them.
 
 Each root has a live normalized replacement. All nine normalized overlays render successfully.
 
-The cleanup excludes Rook and other roots without an active normalized replacement.
+The first unused-root batch excluded Rook because its cloud-underlay copy required path reconciliation.
 
 Commit `2c6000c` removes three more unused GitOps artifacts:
 
@@ -835,6 +835,31 @@ The cluster has no MetalLB namespace, CRDs, workloads, or Argo Application.
 The removed HWPO Flex overlay referenced a missing base. The live normalized overlay is Healthy and Synced.
 
 The removed Zigbee2MQTT Application is not live. The separate `k8s/zigbee2mqtt-net/` root remains unchanged.
+
+Commit `079cec0` removes the duplicate `k8s/rook/` root.
+
+The cluster has no Rook namespace, CRDs, storage classes, or Argo Application.
+
+The maintained copy remains in `k8s/cloud-underlay/rook/`. Its tracked Application now uses this path.
+
+The modified Rook README remains unchanged as user work.
+
+Commit `73df24a` removes the remaining `k8s/zigbee2mqtt/` and `k8s/zigbee2mqtt-net/` roots.
+
+No live Application or repository file uses these roots. The obsolete `zigbee2mqtt-net` PV does not exist.
+
+The live normalized Application remains Healthy. Its Bound PV keeps its UID and `Retain` policy.
+
+Commit `000a97d` removes four unused Kubernetes application groups:
+
+- Ingress NGINX
+- Istio Ambient
+- LiteLLM
+- Netboot
+
+The cluster has no related Application, namespace, workload, PV, IngressClass, ClusterRole, or CRD.
+
+The commit also removes the two standalone Applications that referenced Istio Ambient and Netboot.
 
 ### Previous Phase 3 migration: Actual Budget
 
@@ -943,6 +968,9 @@ Removal candidates:
 - [x] the old Argo CD management path
 - [x] nine unused application roots with live normalized replacements
 - [x] three unused GitOps artifacts
+- [x] the duplicate Rook root
+- [x] both remaining legacy Zigbee2MQTT roots
+- [x] four inactive application groups
 - duplicate root application directories
 - obsolete Cluster API experiments
 
