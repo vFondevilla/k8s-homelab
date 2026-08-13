@@ -992,6 +992,17 @@ Duplicate application-root progress:
 - [x] Remove the old Zigbee2MQTT Application wrapper.
 - [x] Remove six ignored Helm chart caches from obsolete application roots.
 - [x] Remove the empty Home Assistant and Node Feature Discovery roots.
+- [x] Split and remove the duplicate Cluster API root.
+- [x] Remove the obsolete Cluster API Application wrapper.
+
+The split Cluster API resources now use four normalized locations:
+
+- `apps/platform/cluster-api/`
+- `apps/platform/kamaji-provider/`
+- `apps/platform/kro/`
+- `fleet/classes/kamaji-kubevirt/`
+
+This cleanup does not add the new components to the live ApplicationSet.
 
 Use this procedure for each candidate:
 

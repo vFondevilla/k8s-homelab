@@ -1,0 +1,216 @@
+apiVersion: kro.run/v1alpha1
+kind: ResourceGraphDefinition
+metadata:
+  name: kamaji-kubevirt-clusters.homelab.fondevilla.io
+spec:
+  schema:
+    apiVersion: v1alpha1
+    group: homelab.fondevilla.io
+    kind: KamajiKubevirtCluster
+    scope: Namespaced
+    spec:
+      version: string | default="v1.30.1"
+      profile: string | default="ephemeral"
+      networkProfile: string | default="cilium"
+      workerReplicas: integer | default=1 | min=0
+      workerCores: integer | default=2 | min=1
+      workerMemory: string | default="4Gi"
+      podCidr: string | default="10.243.0.0/16"
+      serviceCidr: string | default="10.96.0.0/16"
+      dataStoreName: string | default="default"
+      controlPlaneReplicas: integer | default=1 | min=1
+      serviceType: string | default="LoadBalancer"
+      containerDiskImage: string | default="quay.io/capk/ubuntu-2204-container-disk:v1.30.1"
+      dnsServers: string | default="1.1.1.1 8.8.8.8"
+      fallbackDns: string | default="9.9.9.9"
+    status:
+      clusterPhase: ${cluster.status.phase}
+      controlPlaneEndpoint: ${cluster.spec.controlPlaneEndpoint.host + ":" + string(cluster.spec.controlPlaneEndpoint.port)}
+      ready: ${cluster.status.conditions.exists(c, c.type == "Available" && c.status == "True")}
+      kubeconfigSecretName: ${schema.metadata.name + "-kubeconfig"}
+      workerReplicas: ${machineDeployment.status.replicas}
+      readyWorkerReplicas: ${machineDeployment.status.readyReplicas}
+  resources:
+    - id: namespace
+      template:
+        apiVersion: v1
+        kind: Namespace
+        metadata:
+          name: ${schema.metadata.name}
+          labels:
+            fleet.fondevilla.io/role: tenant
+            fleet.fondevilla.io/profile: ${schema.spec.profile}
+            fleet.fondevilla.io/cni: cilium
+            fleet.fondevilla.io/network-profile: ${schema.spec.networkProfile}
+
+    - id: kubevirtCluster
+      template:
+        apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+        kind: KubevirtCluster
+        metadata:
+          name: ${schema.metadata.name}
+          namespace: ${namespace.metadata.name}
+          annotations:
+            cluster.x-k8s.io/managed-by: kamaji
+          labels:
+            cluster.x-k8s.io/cluster-name: ${schema.metadata.name}
+            fleet.fondevilla.io/role: tenant
+            fleet.fondevilla.io/profile: ${schema.spec.profile}
+            fleet.fondevilla.io/cni: cilium
+            fleet.fondevilla.io/network-profile: ${schema.spec.networkProfile}
+        spec: {}
+      readyWhen:
+        - ${kubevirtCluster.status.ready == true}
+
+    - id: controlPlane
+      template:
+        apiVersion: controlplane.cluster.x-k8s.io/v1alpha2
+        kind: KamajiControlPlane
+        metadata:
+          name: ${schema.metadata.name}
+          namespace: ${namespace.metadata.name}
+          labels:
+            cluster.x-k8s.io/cluster-name: ${schema.metadata.name}
+        spec:
+          addons:
+            coreDNS: {}
+            kubeProxy: {}
+          dataStoreName: ${schema.spec.dataStoreName}
+          kubelet:
+            cgroupfs: systemd
+            preferredAddressTypes:
+              - InternalIP
+              - ExternalIP
+          network:
+            serviceType: ${schema.spec.serviceType}
+          replicas: ${schema.spec.controlPlaneReplicas}
+          version: ${schema.spec.version.replace("v", "")}
+      readyWhen:
+        - ${controlPlane.status.ready == true}
+
+    - id: cluster
+      template:
+        apiVersion: cluster.x-k8s.io/v1beta2
+        kind: Cluster
+        metadata:
+          name: ${schema.metadata.name}
+          namespace: ${namespace.metadata.name}
+          labels:
+            fleet.fondevilla.io/role: tenant
+            fleet.fondevilla.io/profile: ${schema.spec.profile}
+            fleet.fondevilla.io/cni: cilium
+            fleet.fondevilla.io/network-profile: ${schema.spec.networkProfile}
+        spec:
+          clusterNetwork:
+            pods:
+              cidrBlocks:
+                - ${schema.spec.podCidr}
+            services:
+              cidrBlocks:
+                - ${schema.spec.serviceCidr}
+          controlPlaneRef:
+            apiGroup: controlplane.cluster.x-k8s.io
+            kind: KamajiControlPlane
+            name: ${controlPlane.metadata.name}
+          infrastructureRef:
+            apiGroup: infrastructure.cluster.x-k8s.io
+            kind: KubevirtCluster
+            name: ${kubevirtCluster.metadata.name}
+      readyWhen:
+        - ${cluster.status.initialization.controlPlaneInitialized == true}
+        - ${cluster.status.initialization.infrastructureProvisioned == true}
+
+    - id: kubeadmConfigTemplate
+      template:
+        apiVersion: bootstrap.cluster.x-k8s.io/v1beta2
+        kind: KubeadmConfigTemplate
+        metadata:
+          name: ${schema.metadata.name + "-md-0"}
+          namespace: ${cluster.metadata.namespace}
+        spec:
+          template:
+            spec:
+              joinConfiguration:
+                nodeRegistration:
+                  criSocket: unix:///var/run/containerd/containerd.sock
+              preKubeadmCommands:
+                - mkdir -p /etc/systemd/resolved.conf.d
+                - |
+                  cat >/etc/systemd/resolved.conf.d/cluster-api-dns.conf <<'EOF'
+                  [Resolve]
+                  DNS=${schema.spec.dnsServers}
+                  FallbackDNS=${schema.spec.fallbackDns}
+                  DNSStubListener=yes
+                  EOF
+                - ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+                - systemctl restart systemd-resolved
+
+    - id: kubevirtMachineTemplate
+      template:
+        apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+        kind: KubevirtMachineTemplate
+        metadata:
+          name: ${schema.metadata.name + "-md-0"}
+          namespace: ${cluster.metadata.namespace}
+        spec:
+          template:
+            spec:
+              virtualMachineBootstrapCheck:
+                checkStrategy: ssh
+              virtualMachineTemplate:
+                metadata:
+                  namespace: ${cluster.metadata.namespace}
+                spec:
+                  runStrategy: Always
+                  template:
+                    spec:
+                      domain:
+                        cpu:
+                          cores: ${schema.spec.workerCores}
+                        devices:
+                          disks:
+                            - disk:
+                                bus: virtio
+                              name: containervolume
+                          networkInterfaceMultiqueue: true
+                        memory:
+                          guest: ${schema.spec.workerMemory}
+                      evictionStrategy: External
+                      volumes:
+                        - containerDisk:
+                            image: ${schema.spec.containerDiskImage}
+                          name: containervolume
+
+    - id: machineDeployment
+      template:
+        apiVersion: cluster.x-k8s.io/v1beta2
+        kind: MachineDeployment
+        metadata:
+          name: ${schema.metadata.name + "-md-0"}
+          namespace: ${cluster.metadata.namespace}
+          labels:
+            cluster.x-k8s.io/cluster-name: ${cluster.metadata.name}
+        spec:
+          clusterName: ${cluster.metadata.name}
+          replicas: ${schema.spec.workerReplicas}
+          selector:
+            matchLabels:
+              cluster.x-k8s.io/cluster-name: ${cluster.metadata.name}
+              cluster.x-k8s.io/deployment-name: ${schema.metadata.name + "-md-0"}
+          template:
+            metadata:
+              labels:
+                cluster.x-k8s.io/cluster-name: ${cluster.metadata.name}
+                cluster.x-k8s.io/deployment-name: ${schema.metadata.name + "-md-0"}
+            spec:
+              bootstrap:
+                configRef:
+                  apiGroup: bootstrap.cluster.x-k8s.io
+                  kind: KubeadmConfigTemplate
+                  name: ${kubeadmConfigTemplate.metadata.name}
+              clusterName: ${cluster.metadata.name}
+              infrastructureRef:
+                apiGroup: infrastructure.cluster.x-k8s.io
+                kind: KubevirtMachineTemplate
+                name: ${kubevirtMachineTemplate.metadata.name}
+              version: ${schema.spec.version}

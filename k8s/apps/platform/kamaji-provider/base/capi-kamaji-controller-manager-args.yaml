@@ -1,0 +1,15 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: capi-kamaji-controller-manager
+  namespace: kamaji-system
+spec:
+  template:
+    spec:
+      containers:
+        - name: controller
+          args:
+            - --health-probe-bind-address=:8081
+            - --leader-elect
+            - --diagnostics-address=:8443
+            - --feature-gates=DynamicInfrastructureClusterPatch=false,ExternalClusterReference=false,ExternalClusterReferenceCrossNamespace=false,SkipInfraClusterPatch=false
