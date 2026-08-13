@@ -999,6 +999,8 @@ Duplicate application-root progress:
 - [x] Remove the incomplete Kube-OVN values experiment.
 - [x] Move CloudNativePG from `cloud-underlay/` to `apps/platform/`.
 - [x] Move Democratic CSI from `cloud-underlay/` to `apps/platform/`.
+- [x] Move Multus to `apps/platform/` and preserve the live configuration.
+- [x] Move Velero to `apps/platform/` and remove its unused encrypted credentials file.
 
 The split Cluster API resources now use four normalized locations:
 
@@ -1016,6 +1018,10 @@ The Crossplane Application targeted the wrong namespace. Its provider file did n
 The Kube-OVN files did not define a chart source or a Cilium chain. A future chain needs a complete tenant profile.
 
 CloudNativePG and Democratic CSI remain outside Argo discovery. The management cluster had no related resources.
+
+Multus remains outside Argo discovery. The management DaemonSet remains manually installed.
+
+Velero remains outside Argo discovery. The staged Application now uses the normalized path.
 
 Use this procedure for each candidate:
 

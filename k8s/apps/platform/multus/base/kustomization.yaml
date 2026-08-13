@@ -5,5 +5,5 @@ namespace: kube-system
 resources:
   - https://raw.githubusercontent.com/k8snetworkplumbingwg/multus-cni/refs/tags/v4.2.3/deployments/multus-daemonset-thick.yml
 
-patchesStrategicMerge:
-  - host-run-netns-patch.yaml
+patches:
+  - path: host-run-netns-patch.yaml

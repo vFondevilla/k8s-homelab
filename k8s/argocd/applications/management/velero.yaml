@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: velero
+  namespace: argocd
+spec:
+  destination:
+    namespace: velero
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    repoURL: 'git@github.com:vFondevilla/k8s-homelab.git'
+    path: k8s/apps/platform/velero/overlays/management
+    targetRevision: HEAD
+  syncPolicy:
+    # automated: {}
+    syncOptions:
+    - CreateNamespace=true

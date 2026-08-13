@@ -1,0 +1,25 @@
+snapshotsEnabled: false
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+configuration:
+  backupStorageLocation:
+    - name: minio
+      provider: aws
+      bucket: velero
+      default: true
+      config:
+        s3Url: http://10.1.0.3:9000
+        insecureSkipTLSVerify: true
+        region: minio
+        s3ForcePathStyle: "true"
+initContainers:
+  - name: velero-plugin-for-aws
+    image: velero/velero-plugin-for-aws:v1.10.0
+    imagePullPolicy: IfNotPresent
+    volumeMounts:
+      - mountPath: /target
+        name: plugins
+credentials:
+  existingSecret: velero-minio-secret
