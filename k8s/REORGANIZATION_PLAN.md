@@ -987,6 +987,11 @@ Duplicate application-root progress:
 
 - [x] Remove the old Cilium workload component.
 - [x] Move the old NFS Subdirectory workload configuration to a normalized tenant overlay.
+- [x] Remove the old Mosquitto Application wrapper.
+- [x] Remove the old NFS Subdirectory Application wrapper.
+- [x] Remove the old Zigbee2MQTT Application wrapper.
+- [x] Remove six ignored Helm chart caches from obsolete application roots.
+- [x] Remove the empty Home Assistant and Node Feature Discovery roots.
 
 Use this procedure for each candidate:
 
