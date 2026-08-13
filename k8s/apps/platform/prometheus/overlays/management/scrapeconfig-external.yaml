@@ -14,5 +14,6 @@ spec:
       labels:
         instance: host-2
   relabelings:
-    - targetLabel: job
+    - action: replace
+      targetLabel: job
       replacement: external-node-exporter

@@ -10,3 +10,11 @@ helmCharts:
     releaseName: kube-prometheus-stack
     namespace: prom
     valuesFile: values.yaml
+patches:
+  - target:
+      kind: PersistentVolumeClaim
+      name: kube-prometheus-stack-grafana
+    patch: |-
+      - op: add
+        path: /spec/volumeName
+        value: grafana-pv

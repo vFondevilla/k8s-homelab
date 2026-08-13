@@ -1,6 +1,0 @@
-nfs:
-  server: 10.1.0.3
-  path: /mnt/flash/k8s_static_pv/
-storageClass:
-  name: nfs-client
-  defaultClass: true

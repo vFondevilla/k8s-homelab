@@ -418,9 +418,9 @@ CDI 1.63.1 owns `.spec.versions` on `cdis.cdi.kubevirt.io`. Commit `e01941f` rem
 
 Prometheus CRDs use a nested Application. The outer sync did not operate the child Application or replace its CRDs.
 
-NFS migration requires extra storage checks. Five Bound volumes use its StorageClass.
+The NFS path migration preserved five Bound volumes and the `nfs-client` StorageClass UID.
 
-Prometheus migration remains deferred because the live Application is Progressing and OutOfSync.
+Prometheus component sync remains deferred. The Application is Progressing and OutOfSync.
 
 Cilium and Argo self-management remain deferred by policy.
 
@@ -717,6 +717,34 @@ Next procedure:
 
 CAUTION: A Cilium synchronization can disrupt all cluster networking. Review its existing drift as a separate operation.
 
+### Completed live path handoff for the remaining Applications
+
+Root revision `1d03492` changed all eleven live Applications to normalized paths.
+
+The root sync used pruning disabled. The root Application UID and the ApplicationSet UID stayed equal.
+
+All eleven Application UIDs and owner references stayed equal. The inventory stayed at 27 Applications and 25 generated Applications.
+
+Argo reported zero shared-resource warnings after two hard refresh cycles.
+
+MeshCentral, Mosquitto, NFS Subdirectory Provisioner, Promtail, and Cluster API compare Synced from their normalized paths.
+
+Zigbee2MQTT completed a five-resource sync with pruning disabled. Its StatefulSet, pod, PV, and PVC UIDs stayed equal.
+
+Zigbee2MQTT still reports its pre-existing StatefulSet comparison difference. Its workload is Healthy and Ready.
+
+Tinkerbell, Argo CD, and Cilium kept their manual sync policies. The path handoff did not synchronize these components.
+
+Kamaji and Prometheus now use normalized paths. Their automated sync policies remain paused because their drift is unsafe.
+
+The Kamaji render includes two etcd hook Jobs and an etcd StatefulSet change. Review these changes separately.
+
+The Prometheus source now preserves both PV reclaim policies. It also specifies the existing Grafana PV in the bound PVC.
+
+The local rollback snapshot is `/tmp/k8s-homelab-remaining-apps-path-switch-2026-08-13.hZzKuE`.
+
+The cleanup removes ten clean legacy management paths. The cleanup keeps the old Argo CD path because it contains user changes.
+
 ### Previous Phase 3 migration: Actual Budget
 
 Staging commit `3429a44` adds this normalized path:
@@ -920,6 +948,7 @@ Do not use one large rename commit. A large commit makes Argo review and rollbac
 | Actual Budget | `/tmp/k8s-homelab-actualbudget-path-switch-2026-08-12.v4VZCi` |
 | Alloy and HWPO Flex | `/tmp/k8s-homelab-alloy-hwpo-path-switch-2026-08-12.J2IJ3R` |
 | ExternalDNS, Home Assistant, Loki, and Unpoller | `/tmp/k8s-homelab-externaldns-ha-loki-unpoller-path-switch-2026-08-12.T3r4kL` |
+| Remaining eleven Applications | `/tmp/k8s-homelab-remaining-apps-path-switch-2026-08-13.hZzKuE` |
 
 These paths are local and temporary. Do not depend on them as permanent backup storage.
 
