@@ -664,6 +664,53 @@ Next procedure:
 
 CAUTION: Do not confuse the root `argocd` Application with the `in-cluster-argocd` self-management Application.
 
+### Current Phase 3 staging batch D: Cilium and Cluster API
+
+User-prepared normalized targets existed before this batch. The batch preserves their target structure.
+
+This batch uses these normalized paths:
+
+- `k8s/apps/platform/cilium/overlays/management`
+- `k8s/apps/platform/cluster-api/overlays/management`
+
+The Cilium render contains 46 resources. Its two generated certificate Secrets change during every Helm render.
+
+The other 44 resources are byte-identical between the old and new paths.
+
+Their deterministic render SHA-256 is `d51cf147ad70aa0b2edc04e4fb3d255e85b355fcc499075cce30e42b85f8aa46`.
+
+The Cilium Application UID is `1c3c16eb-aea7-4559-b0e0-4ce1a6053961`.
+
+The live certificate Secret UIDs are:
+
+- `cilium-ca`: `3db45768-e127-4bb2-8446-0a187ddcabae`
+- `hubble-server-certs`: `df1ee297-d83a-40b6-a7c1-9c068e464dc1`
+
+The Cluster API normalized render contains 70 resources. Its server-side diff is empty.
+
+The Cluster API render SHA-256 is `f6fd74b45826d126b724242f2c4fd22421425c1731f07ee45a78923c06709228`.
+
+The Cluster API Application UID is `de0c78f4-314d-4e83-adce-68bbe2edf5f8`.
+
+The local legacy Cluster API directory contains uncommitted provider and fleet-class experiments. Live Argo does not use those additions.
+
+The normalized path keeps `ClusterResourceSet` disabled during the path migration. Enable it in a separate change.
+
+Next procedure:
+
+1. Publish the staging commit.
+2. Keep Cilium automated sync disabled.
+3. Pause Cluster API automated sync.
+4. Sync only `argocd` with pruning disabled.
+5. Make sure that both Application UIDs and owners stay equal.
+6. Do not synchronize Cilium during the path migration.
+7. Make sure that the Cilium controller and Secret UIDs stay equal.
+8. Synchronize Cluster API without pruning.
+9. Make sure that all four provider Deployment UIDs stay equal.
+10. Restore Cluster API automated sync.
+
+CAUTION: A Cilium synchronization can disrupt all cluster networking. Review its existing drift as a separate operation.
+
 ### Previous Phase 3 migration: Actual Budget
 
 Staging commit `3429a44` adds this normalized path:

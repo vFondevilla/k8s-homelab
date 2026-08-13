@@ -61,6 +61,12 @@ spec:
                 - path: k8s/apps/prometheus/overlays/control-plane
                   exclude: true
                 - path: k8s/apps/platform/prometheus/overlays/management
+                - path: k8s/apps/cilium/overlays/control-plane
+                  exclude: true
+                - path: k8s/apps/platform/cilium/overlays/management
+                - path: k8s/apps/cluster-api/overlays/control-plane
+                  exclude: true
+                - path: k8s/apps/platform/cluster-api/overlays/management
                 - path: k8s/apps/1password-connect/overlays/control-plane
                   exclude: true
                 - path: k8s/apps/platform/1password-connect/overlays/management
