@@ -983,6 +983,11 @@ Numbered-root progress:
 - [x] Migrate both NFS StorageClass files.
 - [x] Remove the incomplete Omni Kubernetes experiment.
 
+Duplicate application-root progress:
+
+- [x] Remove the old Cilium workload component.
+- [x] Move the old NFS Subdirectory workload configuration to a normalized tenant overlay.
+
 Use this procedure for each candidate:
 
 1. Make sure that no live Application uses the path.
