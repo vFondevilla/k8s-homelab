@@ -30,17 +30,9 @@ spec:
                 # legacy wildcard, and normalized paths are added explicitly.
                 - path: k8s/apps/platform/alloy/overlays/management
                 - path: k8s/apps/workloads/hwpo-flex/overlays/management
-                - path: k8s/apps/external-dns/overlays/control-plane
-                  exclude: true
                 - path: k8s/apps/platform/external-dns/overlays/management
-                - path: k8s/apps/home-assistant/overlays/control-plane
-                  exclude: true
                 - path: k8s/apps/workloads/home-assistant/overlays/management
-                - path: k8s/apps/loki/overlays/control-plane
-                  exclude: true
                 - path: k8s/apps/platform/loki/overlays/management
-                - path: k8s/apps/unpoller/overlays/control-plane
-                  exclude: true
                 - path: k8s/apps/platform/unpoller/overlays/management
                 - path: k8s/apps/1password-connect/overlays/control-plane
                   exclude: true
