@@ -980,7 +980,7 @@ Numbered-root progress:
 - [x] Remove the legacy KubeVirt copy.
 - [x] Remove the empty Kube-OVN Application file.
 - [x] Move the tenant Local Path Provisioner configuration to `apps/platform/`.
-- [ ] Migrate both NFS StorageClass files.
+- [x] Migrate both NFS StorageClass files.
 - [ ] Classify and migrate the Omni manifests.
 
 Use this procedure for each candidate:
@@ -991,7 +991,7 @@ Use this procedure for each candidate:
 4. Observe two clean Argo sync cycles.
 5. Remove the old path in a dedicated commit.
 
-The numbered roots now contain only the NFS StorageClass files and the Omni manifests.
+The numbered roots now contain only the Omni manifests.
 
 The live management Cilium and KubeVirt Applications use normalized paths. No live Application used the removed files.
 
@@ -999,9 +999,11 @@ The tenant Cilium values already existed in the normalized tenant overlay. The m
 
 The tenant Local Path Provisioner overlay keeps `/var/mnt/local-volume`. It also keeps `local-path` as the default StorageClass.
 
-The live `nfs-csi` StorageClass still uses the workload-cluster NFS address. A Bound Prometheus PVC uses this StorageClass.
+The normalized NFS CSI StorageClass component preserves both legacy server addresses in separate overlays.
 
-Do not remove the NFS files until the repository contains a normalized owner for this StorageClass.
+The live `nfs-csi` StorageClass uses the tenant address. A Bound Prometheus PVC uses this StorageClass name.
+
+The management cluster has no registered NFS CSI driver. Keep the new component outside Argo discovery during this review.
 
 The Omni files do not define a complete deployment source. Do not create an Argo Application until the chart source and version are known.
 
