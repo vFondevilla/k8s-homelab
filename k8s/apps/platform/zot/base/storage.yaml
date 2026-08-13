@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: zot-static-pv
+  annotations:
+    helm.sh/resource-policy: keep
+spec:
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-client
+  volumeMode: Filesystem
+  claimRef:
+    name: zot-pvc-zot-0
+    namespace: zot
+  nfs:
+    server: 10.1.0.3
+    path: /mnt/flash/k8s_static_pv/zot-zot-pvc-zot-0-pvc-932430a4-5be1-4fe2-9d93-01b7d389ca79
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: zot-pvc-zot-0
+  namespace: zot
+  annotations:
+    helm.sh/resource-policy: keep
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: nfs-client
+  volumeMode: Filesystem
+  volumeName: zot-static-pv

@@ -1,0 +1,39 @@
+persistence: true
+pvc:
+  create: false
+  name: zot-pvc-zot-0
+ingress:
+  enabled: true
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  className: cilium
+  pathtype: Prefix
+  hosts:
+    - host: zot.apps.fondevilla.io
+      paths:
+        - path: /
+  tls:
+    - hosts:
+        - zot.apps.fondevilla.io
+      secretName: zot-tls
+mountConfig: true
+configFiles:
+  config.json: "{\n  \"storage\": { \"rootDirectory\": \"/var/lib/registry\" },\n
+    \ \"http\": {\n    \"address\": \"0.0.0.0\",\n    \"port\": \"5000\",\n    \"readTimeout\":
+    \"60s\",\n    \"writeTimeout\": \"60s\",\n    \"compat\": [\"docker2s2\"]\n  },\n
+    \ \"log\": { \"level\": \"debug\" },\n  \"extensions\": {\n    \"ui\": { \"enable\":
+    true },\n    \"search\": { \n      \"enable\": true,\n      \"cve\": {\n        \"updateInterval\":
+    \"2h\"\n        }\n      },\n    \"sync\": {\n      \"enable\": true,\n      \"registries\":
+    [\n        {\n          \"urls\": [\"https://index.docker.io\"],\n          \"onDemand\":
+    true,\n          \"tlsVerify\": true,\n          \"preserveDigest\": true,\n          \"syncTimeout\":
+    \"30m\",\n          \"content\": [\n            {\n              \"prefix\": \"**\",\n
+    \             \"destination\": \"/dockerhub\"\n            }\n          ]\n        },\n
+    \       {\n          \"urls\": [\"https://quay.io\"],\n          \"onDemand\":
+    true,\n          \"tlsVerify\": true,\n          \"preserveDigest\": true,\n          \"syncTimeout\":
+    \"30m\",\n          \"content\": [\n            {\n              \"prefix\": \"**\",\n
+    \             \"destination\": \"/quay\"\n            }\n          ]\n        },\n
+    \       {\n          \"urls\": [\"https://ghcr.io\"],\n          \"onDemand\":
+    true,\n          \"tlsVerify\": true,\n          \"preserveDigest\": true,\n          \"syncTimeout\":
+    \"30m\",\n          \"content\": [\n            {\n              \"prefix\": \"**\",\n
+    \             \"destination\": \"/ghcr\"\n            }\n            ]\n            }\n
+    \     ]\n      }\n    }\n}"

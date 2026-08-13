@@ -82,6 +82,8 @@ This section records the live state after cleanup activation on 2026-08-13.
 - Tinkerbell remains paused and has no workload resources.
 - Kamaji remains paused because its render contains unsafe etcd changes.
 - Prometheus remains paused for a separate automation review.
+- Zot remains Helm-managed and uses the Bound `zot-pvc-zot-0` claim.
+- The staged Zot Application is not part of the management Argo root.
 - The management cluster has no CAPI Clusters or Machines.
 - The management cluster has no Kamaji `TenantControlPlane` objects.
 - The management cluster has no KubeVirt VMs or VMIs.
@@ -840,9 +842,21 @@ Commit `079cec0` removes the duplicate `k8s/rook/` root.
 
 The cluster has no Rook namespace, CRDs, storage classes, or Argo Application.
 
-The maintained copy remains in `k8s/cloud-underlay/rook/`. Its tracked Application now uses this path.
+The maintained Rook configuration now uses `k8s/apps/platform/rook-ceph/`.
 
-The modified Rook README remains unchanged as user work.
+The management overlay installs chart `v1.20.2`. The base keeps the Ceph cluster, pool, StorageClass, object store, and Ingress.
+
+The staged Rook Application uses the normalized overlay. The management Argo root does not include this Application.
+
+The cleanup removes the unused generated operator manifest for chart `v1.16.2`.
+
+The Zot configuration now uses `k8s/apps/platform/zot/`.
+
+The live Helm release remains unchanged. The new overlay produces the same five live chart resources and exact ConfigMap data.
+
+The base preserves `zot-static-pv`, `zot-pvc-zot-0`, the `Retain` policy, and the current NFS path.
+
+The staged Zot Application is not active. An ownership review must occur before Argo manages the Helm-owned resources.
 
 Commit `73df24a` removes the remaining `k8s/zigbee2mqtt/` and `k8s/zigbee2mqtt-net/` roots.
 
@@ -1002,6 +1016,8 @@ Duplicate application-root progress:
 - [x] Move Multus to `apps/platform/` and preserve the live configuration.
 - [x] Move Velero to `apps/platform/` and remove its unused encrypted credentials file.
 - [x] Move Prometheus SNMP Exporter to `apps/platform/`.
+- [x] Move Rook Ceph from `cloud-underlay/` to `apps/platform/`.
+- [x] Move Zot from `cloud-underlay/` to `apps/platform/`.
 
 The split Cluster API resources now use four normalized locations:
 

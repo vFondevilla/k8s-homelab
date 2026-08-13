@@ -1,0 +1,7 @@
+enableDiscoveryDaemon: true
+discoveryDaemonInterval: 10m
+monitoring:
+  enabled: true
+csi:
+  serviceMonitor:
+    enabled: true
