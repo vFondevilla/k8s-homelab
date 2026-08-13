@@ -69,11 +69,11 @@ This section records the live state after cleanup activation on 2026-08-13.
 - The manual root Application is `argocd`.
 - The root owns only `apps-control-plane`.
 - The root has no automated sync policy.
-- The root is Healthy and Synced at revision `5386ac0`.
+- The root is Healthy and Synced at revision `6f57e35`.
 - `apps-control-plane` uses `applicationsSync: create-update`.
 - `apps-control-plane` uses `preserveResourcesOnDeletion: true`.
 - `apps-control-plane` has `resources-finalizer.argocd.argoproj.io`.
-- `apps-control-plane` is at generation 19 and reports `ResourcesUpToDate=True`.
+- `apps-control-plane` is at generation 20 and reports `ResourcesUpToDate=True`.
 - The inventory contains 27 Applications.
 - The ApplicationSet generates 25 Applications.
 - Argo reports zero shared-resource warnings.
@@ -758,7 +758,7 @@ The root remained Healthy and Synced after two hard refresh cycles. The root App
 
 The ApplicationSet advanced from generation 18 to generation 19. Its UID and all eleven Application UIDs stayed equal.
 
-The live ApplicationSet keeps these five legacy exclusions before the final Argo CD cleanup:
+The first cleanup left these five legacy exclusions:
 
 - `k8s/apps/argocd/overlays/control-plane`
 - `k8s/apps/1password-connect/overlays/control-plane`
@@ -791,7 +791,20 @@ Two untracked manifests still reference the removed path:
 
 These files remain unchanged because they are user work. Update their paths before you add them to Git.
 
-Publish commit `019be6f`. Then sync only the `argocd` root with pruning disabled.
+Root revision `6f57e35` activated commit `019be6f` with pruning disabled.
+
+The root remained Healthy and Synced after two hard refresh cycles. Its UID stayed equal.
+
+The ApplicationSet advanced from generation 19 to generation 20. Its UID and the Argo CD Application UID stayed equal.
+
+The live ApplicationSet now keeps these four exclusions:
+
+- `k8s/apps/1password-connect/overlays/control-plane`
+- `k8s/apps/external-secrets-operator/overlays/control-plane`
+- `k8s/apps/cert-manager/overlays/control-plane`
+- `k8s/apps/node-feature-discovery/overlays/control-plane`
+
+The inventory remains at 27 Applications and 25 generated Applications. Argo reports zero shared-resource warnings.
 
 Commit `e66a29b` removes these nine unused application roots:
 
@@ -809,7 +822,19 @@ No live Application uses these roots. No repository file references them.
 
 Each root has a live normalized replacement. All nine normalized overlays render successfully.
 
-The cleanup excludes Rook, MetalLB, and other roots without an active normalized replacement.
+The cleanup excludes Rook and other roots without an active normalized replacement.
+
+Commit `2c6000c` removes three more unused GitOps artifacts:
+
+- `k8s/metallb/`
+- `k8s/apps/hwpo-flex/overlays/workload/kustomization.yaml`
+- `k8s/apps/zigbee2mqtt-net.yaml`
+
+The cluster has no MetalLB namespace, CRDs, workloads, or Argo Application.
+
+The removed HWPO Flex overlay referenced a missing base. The live normalized overlay is Healthy and Synced.
+
+The removed Zigbee2MQTT Application is not live. The separate `k8s/zigbee2mqtt-net/` root remains unchanged.
 
 ### Previous Phase 3 migration: Actual Budget
 
@@ -917,6 +942,7 @@ Removal candidates:
 - [x] ten duplicate Phase 3 management paths
 - [x] the old Argo CD management path
 - [x] nine unused application roots with live normalized replacements
+- [x] three unused GitOps artifacts
 - duplicate root application directories
 - obsolete Cluster API experiments
 
