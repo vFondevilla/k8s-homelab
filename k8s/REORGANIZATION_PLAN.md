@@ -574,6 +574,8 @@ CAUTION: The old NFS tenant overlay still uses the old shared base. Keep that ba
 
 ### Current Phase 3 staging batch B: Promtail and Tinkerbell
 
+Staging commit `dd91ef4` adds both normalized paths.
+
 This batch uses these normalized paths:
 
 - `k8s/apps/platform/promtail/overlays/management`
@@ -614,6 +616,8 @@ Next procedure:
 10. Remove both old management paths in a cleanup commit.
 
 ### Current Phase 3 staging batch C: Argo CD, Kamaji, and Prometheus
+
+Staging commit `f22f1e6` adds the three normalized paths.
 
 User-prepared normalized targets existed before this batch. This batch preserves their manifest content.
 
@@ -665,6 +669,8 @@ Next procedure:
 CAUTION: Do not confuse the root `argocd` Application with the `in-cluster-argocd` self-management Application.
 
 ### Current Phase 3 staging batch D: Cilium and Cluster API
+
+Staging commit `5914e0d` adds both normalized paths.
 
 User-prepared normalized targets existed before this batch. The batch preserves their target structure.
 
