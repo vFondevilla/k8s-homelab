@@ -1,5 +1,7 @@
 ipam:
   mode: kubernetes
+cni:
+  exclusive: false
 kubeProxyReplacement: true
 securityContext:
   capabilities:
