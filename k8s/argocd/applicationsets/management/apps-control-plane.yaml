@@ -40,8 +40,6 @@ spec:
                 - path: k8s/apps/workloads/zigbee2mqtt/overlays/management
                 - path: k8s/apps/platform/promtail/overlays/management
                 - path: k8s/apps/platform/tinkerbell/overlays/management
-                - path: k8s/apps/argocd/overlays/control-plane
-                  exclude: true
                 - path: k8s/apps/platform/argocd/overlays/management
                 - path: k8s/apps/platform/kamaji/overlays/management
                 - path: k8s/apps/platform/prometheus/overlays/management
