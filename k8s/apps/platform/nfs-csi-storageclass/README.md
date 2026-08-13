@@ -4,11 +4,15 @@ This component preserves the legacy `nfs-csi` StorageClass definitions.
 
 The component does not install an NFS CSI driver.
 
+The base preserves the current live StorageClass definition. It uses `10.254.0.3` and permits volume expansion.
+
 ## Overlays
 
 The management overlay uses the NFS server at `10.1.0.3`.
 
 The tenant overlay uses the NFS server at `10.254.0.3`.
+
+The tenant overlay preserves the legacy definition without volume expansion.
 
 Both overlays use the directory `/mnt/flash/k8s_static_pv`.
 

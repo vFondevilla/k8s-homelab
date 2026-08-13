@@ -994,6 +994,7 @@ Duplicate application-root progress:
 - [x] Remove the empty Home Assistant and Node Feature Discovery roots.
 - [x] Split and remove the duplicate Cluster API root.
 - [x] Remove the obsolete Cluster API Application wrapper.
+- [x] Move the cloud-underlay NFS CSI StorageClass to its normalized base.
 
 The split Cluster API resources now use four normalized locations:
 
@@ -1025,6 +1026,10 @@ The normalized NFS CSI StorageClass component preserves both legacy server addre
 The live `nfs-csi` StorageClass uses the tenant address. A Bound Prometheus PVC uses this StorageClass name.
 
 The management cluster has no registered NFS CSI driver. Keep the new component outside Argo discovery during this review.
+
+The normalized base preserves the current live StorageClass definition from `cloud-underlay/`.
+
+The management and tenant overlays preserve the two numbered-root variants.
 
 The removed Omni files had no complete deployment source. The management cluster had no Omni resources.
 
