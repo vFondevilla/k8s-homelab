@@ -786,12 +786,11 @@ The old README change already exists in the normalized path. The old `app.yaml` 
 
 Both the normalized Argo CD overlay and the Argo root render successfully after this cleanup.
 
-Two untracked manifests still reference the removed path:
+One untracked manifest still references the removed path:
 
 - `k8s/argocd/applications/management/platform-argocd.yaml`
-- `k8s/cloud-underlay/argocd.yaml`
 
-These files remain unchanged because they are user work. Update their paths before you add them to Git.
+This file remains unchanged because it is user work. Update its path before you add it to Git.
 
 Root revision `6f57e35` activated commit `019be6f` with pruning disabled.
 
@@ -915,13 +914,17 @@ Status: **partly complete**
 - [x] Move the RGD to `k8s/fleet/classes/kamaji-kubevirt/`.
 - [x] Remove the obsolete Kamaji and KubeVirt proof of concept.
 - [ ] Move useful experiments to `fleet/examples/`.
-- [ ] Keep all examples outside Argo discovery patterns.
+- [x] Keep all examples outside Argo discovery patterns.
 - [ ] Make sure that the explicit Kamaji provider arguments remain.
 - [ ] Make sure that Argo does not render the Kamaji teardown hook as a normal Job.
 - [ ] Make sure that a clean installation creates `DataStore/default` in the correct order.
 - [ ] Replace the manual Flannel step with automated Cilium bootstrap.
 
 Keep KRO as the first request facade. Evaluate a native CAPI ClusterClass after Kamaji and CAPK template validation.
+
+The Tinkerbell Hardware, Template, and Workflow examples now use `k8s/fleet/examples/tinkerbell/`.
+
+The examples remain opt-in. The repository contains no Argo discovery pattern for `k8s/fleet/examples/`.
 
 ## Phase 5: Implement one tenant profile
 
@@ -985,8 +988,8 @@ Removal candidates:
 - [x] the duplicate Rook root
 - [x] both remaining legacy Zigbee2MQTT roots
 - [x] four inactive application groups
-- duplicate root application directories
-- obsolete Cluster API experiments
+- [x] duplicate root application directories
+- [ ] obsolete Cluster API experiments
 
 Numbered-root progress:
 
@@ -1018,6 +1021,17 @@ Duplicate application-root progress:
 - [x] Move Prometheus SNMP Exporter to `apps/platform/`.
 - [x] Move Rook Ceph from `cloud-underlay/` to `apps/platform/`.
 - [x] Move Zot from `cloud-underlay/` to `apps/workloads/`.
+- [x] Remove the obsolete standalone KubeVirt Application.
+- [x] Remove six unused `cloud-underlay` Application wrappers.
+- [x] Remove the unused `cloud-underlay` Tinkerbell deployment copy.
+
+The standalone KubeVirt Application used the missing `k8s/apps/kubevirt` path.
+
+The live `in-cluster-kubevirt` Application uses the normalized management overlay. It remains Healthy and Synced.
+
+The six removed `cloud-underlay` wrappers used legacy paths or duplicate Application ownership.
+
+The live components use normalized ApplicationSet paths. The Tinkerbell examples remain available under `fleet/examples/`.
 
 The split Cluster API resources now use four normalized locations:
 
@@ -1163,6 +1177,7 @@ Do not use one large rename commit. A large commit makes Argo review and rollbac
 | ExternalDNS, Home Assistant, Loki, and Unpoller | `/tmp/k8s-homelab-externaldns-ha-loki-unpoller-path-switch-2026-08-12.T3r4kL` |
 | Remaining eleven Applications | `/tmp/k8s-homelab-remaining-apps-path-switch-2026-08-13.hZzKuE` |
 | Final Argo CD legacy cleanup | `/tmp/k8s-homelab-argocd-legacy-cleanup-2026-08-13.CXgR8v` |
+| KubeVirt and cloud-underlay wrapper cleanup | `/tmp/k8s-homelab-phase4-cleanup-2026-08-13.2MKy8z` |
 
 These paths are local and temporary. Do not depend on them as permanent backup storage.
 

@@ -1,0 +1,11 @@
+apiVersion: tinkerbell.org/v1alpha1
+kind: Workflow
+metadata:
+  name: example-ubuntu-install
+  namespace: tinkerbell
+spec:
+  templateRef: example-ubuntu-jammy
+  hardwareRef: example-machine
+  hardwareMap:
+    # Must match the boot NIC MAC in the Hardware resource.
+    device_1: "52:54:00:00:00:01"

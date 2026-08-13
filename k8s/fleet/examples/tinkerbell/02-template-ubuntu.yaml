@@ -1,0 +1,43 @@
+apiVersion: tinkerbell.org/v1alpha1
+kind: Template
+metadata:
+  name: example-ubuntu-jammy
+  namespace: tinkerbell
+spec:
+  data: |
+    name: example-ubuntu-jammy
+    version: "0.1"
+    global_timeout: 9800
+    tasks:
+      - name: os installation
+        worker: "{{.device_1}}"
+        volumes:
+          - /dev:/dev
+          - /dev/console:/dev/console
+          - /lib/firmware:/lib/firmware:ro
+        actions:
+          - name: stream image
+            image: quay.io/tinkerbell/actions/image2disk:latest
+            timeout: 9600
+            environment:
+              DEST_DISK: {{ index .Hardware.Disks 0 }}
+              # Replace this with an HTTP URL serving the Ubuntu image.
+              IMG_URL: "http://REPLACE_WITH_IMAGE_SERVER/jammy-server-cloudimg-amd64.raw.gz"
+              COMPRESSED: "true"
+          - name: add cloud-init datasource
+            image: quay.io/tinkerbell/actions/writefile:latest
+            timeout: 90
+            environment:
+              DEST_DISK: {{ formatPartition ( index .Hardware.Disks 0 ) 1 }}
+              DEST_PATH: /etc/cloud/cloud.cfg.d/10-tinkerbell.cfg
+              FS_TYPE: ext4
+              UID: "0"
+              GID: "0"
+              MODE: "0600"
+              DIRMODE: "0700"
+              CONTENTS: |
+                datasource:
+                  Ec2:
+                    metadata_urls: ["http://10.253.0.50:7172"]
+                    strict_id: false
+                manage_etc_hosts: localhost

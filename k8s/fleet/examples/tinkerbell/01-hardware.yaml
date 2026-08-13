@@ -1,0 +1,25 @@
+apiVersion: tinkerbell.org/v1alpha1
+kind: Hardware
+metadata:
+  name: example-machine
+  namespace: tinkerbell
+spec:
+  # Replace every example value before applying this resource.
+  agentID: "52:54:00:00:00:01"
+  disks:
+    - device: /dev/sda
+  interfaces:
+    - dhcp:
+        arch: x86_64
+        hostname: example-machine
+        ip:
+          address: 192.168.2.250
+          gateway: 192.168.2.1
+          netmask: 255.255.255.0
+        lease_time: 86400
+        mac: "52:54:00:00:00:01"
+        name_servers:
+          - 192.168.2.1
+        uefi: true
+      netboot:
+        allowPXE: true
