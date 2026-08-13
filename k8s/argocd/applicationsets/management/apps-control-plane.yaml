@@ -34,6 +34,18 @@ spec:
                 - path: k8s/apps/workloads/home-assistant/overlays/management
                 - path: k8s/apps/platform/loki/overlays/management
                 - path: k8s/apps/platform/unpoller/overlays/management
+                - path: k8s/apps/meshcentral/overlays/control-plane
+                  exclude: true
+                - path: k8s/apps/workloads/meshcentral/overlays/management
+                - path: k8s/apps/mosquitto/overlays/control-plane
+                  exclude: true
+                - path: k8s/apps/workloads/mosquitto/overlays/management
+                - path: k8s/apps/nfs-subdir/overlays/control-plane
+                  exclude: true
+                - path: k8s/apps/platform/nfs-subdir/overlays/management
+                - path: k8s/apps/zigbee2mqtt/overlays/control-plane
+                  exclude: true
+                - path: k8s/apps/workloads/zigbee2mqtt/overlays/management
                 - path: k8s/apps/1password-connect/overlays/control-plane
                   exclude: true
                 - path: k8s/apps/platform/1password-connect/overlays/management

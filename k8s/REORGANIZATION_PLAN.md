@@ -2,7 +2,7 @@
 
 Status: **in progress**  
 Prepared: **2026-08-07**  
-Updated: **2026-08-12**  
+Updated: **2026-08-13**
 Scope: `k8s/` and the Cluster API experiments in `cluster-api/`
 
 ## Purpose
@@ -64,7 +64,7 @@ If Argo shows an unexpected prune, replacement, or shared-resource warning, stop
 
 ## Current live state
 
-The state in this section was current after the Alloy and HWPO Flex migrations on 2026-08-12.
+The state in this section was current after the ExternalDNS, Home Assistant, Loki, and Unpoller migrations on 2026-08-13.
 
 - The manual root Application is `argocd`.
 - The root owns only `apps-control-plane`.
@@ -418,7 +418,7 @@ CDI 1.63.1 owns `.spec.versions` on `cdis.cdi.kubevirt.io`. Commit `e01941f` rem
 
 Prometheus CRDs use a nested Application. The outer sync did not operate the child Application or replace its CRDs.
 
-NFS migration remains deferred. Five Bound volumes use its StorageClass. These volumes include Kamaji etcd and Loki volumes.
+NFS migration requires extra storage checks. Five Bound volumes use its StorageClass.
 
 Prometheus migration remains deferred because the live Application is Progressing and OutOfSync.
 
@@ -460,7 +460,7 @@ Commit `6328c75` records the result. The root and both Applications are Healthy 
 
 The final inventory contains 27 Applications. The ApplicationSet generates 25 Applications. Argo reports zero shared-resource warnings.
 
-### Most recent Phase 3 batch: ExternalDNS, Home Assistant, Loki, and Unpoller
+### Previous Phase 3 batch: ExternalDNS, Home Assistant, Loki, and Unpoller
 
 Staging commit `c158114` adds the normalized paths and explicit ExternalSecret defaults.
 
@@ -517,6 +517,58 @@ Next procedure:
 5. Sync only `argocd` with pruning disabled.
 6. Make sure that all four obsolete live exclusions are absent.
 7. Make sure that all saved UIDs remain equal.
+
+### Current Phase 3 staging batch: MeshCentral, Mosquitto, NFS Subdirectory Provisioner, and Zigbee2MQTT
+
+This batch uses these normalized paths:
+
+- `k8s/apps/workloads/meshcentral/overlays/management`
+- `k8s/apps/workloads/mosquitto/overlays/management`
+- `k8s/apps/platform/nfs-subdir/overlays/management`
+- `k8s/apps/workloads/zigbee2mqtt/overlays/management`
+
+The old MeshCentral and Mosquitto sources omitted the names of their bound volumes.
+
+Argo could not change the immutable `volumeName` field on three PVCs. The corrected sources specify the existing volume names.
+
+All old and new renders are byte-identical after this correction:
+
+| Component | Resources | Render SHA-256 |
+| --- | ---: | --- |
+| MeshCentral | 7 | `8a23ddf2907abd7c0565e1d04663b0cea9ff1704b0cfce96777531752e1ec02a` |
+| Mosquitto | 7 | `a0062cc55448b94cc0994b975d0965697ca3584209eea664d69d823128847c78` |
+| NFS Subdirectory Provisioner | 8 | `cbe5181863f2d03b83d18a9aca9014f936df7217491be10204d0eb4aed54f031` |
+| Zigbee2MQTT | 5 | `3827911a6ab3f4d7312e00adb3eed46f873cbdd9ce8b8ba155017a3c305d773c` |
+
+The NFS and Zigbee2MQTT server-side diffs are empty. They produce existing Pod Security warnings only.
+
+The MeshCentral and Mosquitto diffs contain only the Argo tracking annotations on the corrected PVCs.
+
+The pre-switch Application UIDs are:
+
+- MeshCentral: `e252c7ba-60ea-48f2-953c-9e3a4f922f10`
+- Mosquitto: `85cee037-d712-4096-bb7e-25eed4cdcf95`
+- NFS Subdirectory Provisioner: `8ba5aeca-5ac1-4c00-952a-0d78a0a2c023`
+- Zigbee2MQTT: `a73698bf-0e1c-4098-9697-70c49f0302ab`
+
+The NFS provisioner has five Bound volumes. They contain three Kamaji etcd volumes, one Loki volume, and one Zot volume.
+
+The `nfs-client` StorageClass UID is `9abd5a22-a683-4bad-8d74-b0f6e7db7f5d`.
+
+Next procedure:
+
+1. Publish the staging commit.
+2. Pause automated sync for all four Applications.
+3. Sync only `argocd` with pruning disabled.
+4. Make sure that all four Application UIDs and owners stay equal.
+5. Do a hard refresh for all four Applications.
+6. Review all planned operations.
+7. Sync each component with pruning disabled.
+8. Make sure that all workload and storage UIDs stay equal.
+9. Restore automated sync for all four Applications.
+10. Remove only the old management paths in a cleanup commit.
+
+CAUTION: The old NFS tenant overlay still uses the old shared base. Keep that base until the tenant overlay moves.
 
 ### Previous Phase 3 migration: Actual Budget
 
