@@ -613,6 +613,57 @@ Next procedure:
 9. Keep Tinkerbell automated sync disabled.
 10. Remove both old management paths in a cleanup commit.
 
+### Current Phase 3 staging batch C: Argo CD, Kamaji, and Prometheus
+
+User-prepared normalized targets existed before this batch. This batch preserves their manifest content.
+
+This batch uses these normalized paths:
+
+- `k8s/apps/platform/argocd/overlays/management`
+- `k8s/apps/platform/kamaji/overlays/management`
+- `k8s/apps/platform/prometheus/overlays/management`
+
+Each normalized render is byte-identical to its old render:
+
+| Component | Resources | Render SHA-256 |
+| --- | ---: | --- |
+| Argo CD | 63 | `0516c58e7e4614b1b5d61fca62ee9d906fbd4b34e1a88f8477b90c9b07610174` |
+| Kamaji | 27 | `427455b713ae8dff2ed2d0c837b58f80b8c957ef8f0a77bc65561ae958d2e768` |
+| Prometheus | 133 | `0b9eaed6799b0bc306f718d9f42ff94b698d9f4005dcf74e3f83245485c66896` |
+
+Both Argo CD sources remove insignificant trailing spaces from the in-cluster JSON configuration.
+
+The Application UIDs are:
+
+- Argo CD: `37dbb9a3-3573-4e55-97d0-1b8587084e85`
+- Kamaji: `4ff9024f-fa5b-4023-9e43-cc4349013243`
+- Prometheus: `965a753e-644d-4b25-a57b-b0c7b4e4d8f2`
+
+The Argo CD self-management Application is Healthy and OutOfSync. Its automated sync policy remains disabled.
+
+The root Application is also named `argocd`. The root source remains `k8s/argocd`.
+
+The Kamaji Application is Healthy and OutOfSync. Its three etcd PVCs are Bound.
+
+The Prometheus Application is Progressing and OutOfSync. A sync operation has waited for node-exporter since 2026-07-22.
+
+Three of five node-exporter pods are Ready. This condition is related to unavailable nodes.
+
+Next procedure:
+
+1. Publish the staging commit.
+2. Keep Argo CD automated sync disabled.
+3. Pause Kamaji and Prometheus automated sync.
+4. End or cancel the stale Prometheus operation before its path switch.
+5. Sync only `argocd` with pruning disabled.
+6. Make sure that all three Application UIDs and owners stay equal.
+7. Keep Argo CD unsynchronized until its drift passes a separate review.
+8. Review Kamaji and Prometheus drift before their component syncs.
+9. Synchronize each approved component without pruning.
+10. Make sure that all workload and storage identities stay equal.
+
+CAUTION: Do not confuse the root `argocd` Application with the `in-cluster-argocd` self-management Application.
+
 ### Previous Phase 3 migration: Actual Budget
 
 Staging commit `3429a44` adds this normalized path:

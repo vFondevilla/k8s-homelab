@@ -1,0 +1,50 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+helmCharts:
+  - name: kamaji
+    repo: https://clastix.github.io/charts
+    version: 1.0.0
+    releaseName: kamaji
+    namespace: kamaji-system
+    includeCRDs: true
+    valuesFile: values.yaml
+patches:
+  - target:
+      kind: DataStore
+      name: default
+    patch: |-
+      - op: add
+        path: /metadata/annotations/argocd.argoproj.io~1sync-wave
+        value: "5"
+  - target:
+      kind: Deployment
+      name: kamaji
+      namespace: kamaji-system
+    patch: |-
+      - op: add
+        path: /metadata/annotations
+        value:
+          argocd.argoproj.io/sync-wave: "6"
+  - target:
+      kind: MutatingWebhookConfiguration
+      name: kamaji-mutating-webhook-configuration
+    patch: |-
+      - op: add
+        path: /metadata/annotations/argocd.argoproj.io~1sync-wave
+        value: "10"
+  - target:
+      kind: ValidatingWebhookConfiguration
+      name: kamaji-validating-webhook-configuration
+    patch: |-
+      - op: add
+        path: /metadata/annotations/argocd.argoproj.io~1sync-wave
+        value: "10"
+  - patch: |-
+      $patch: delete
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: kamaji-etcd-teardown
+        namespace: kamaji-system

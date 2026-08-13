@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: external-hosts
+  namespace: prom
+spec:
+  staticConfigs:
+    - targets:
+        - 10.1.0.162:9100
+      labels:
+        instance: host-1
+    - targets:
+        - "PLACEHOLDER_HOST2_IP:PLACEHOLDER_HOST2_PORT"
+      labels:
+        instance: host-2
+  relabelings:
+    - targetLabel: job
+      replacement: external-node-exporter
