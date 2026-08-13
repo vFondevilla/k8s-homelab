@@ -750,7 +750,7 @@ The local rollback snapshot is `/tmp/k8s-homelab-remaining-apps-path-switch-2026
 
 Cleanup commit `90888f0` removes ten clean legacy management paths.
 
-The cleanup keeps the old Argo CD path because it contains user changes.
+The first cleanup kept the old Argo CD path because it contained user changes.
 
 Root revision `5386ac0` activated the cleanup with pruning disabled.
 
@@ -758,7 +758,7 @@ The root remained Healthy and Synced after two hard refresh cycles. The root App
 
 The ApplicationSet advanced from generation 18 to generation 19. Its UID and all eleven Application UIDs stayed equal.
 
-The ApplicationSet now keeps these five legacy exclusions:
+The live ApplicationSet keeps these five legacy exclusions before the final Argo CD cleanup:
 
 - `k8s/apps/argocd/overlays/control-plane`
 - `k8s/apps/1password-connect/overlays/control-plane`
@@ -766,7 +766,7 @@ The ApplicationSet now keeps these five legacy exclusions:
 - `k8s/apps/cert-manager/overlays/control-plane`
 - `k8s/apps/node-feature-discovery/overlays/control-plane`
 
-The Argo CD exclusion protects uncommitted user changes. The other exclusions belong to earlier completed migrations.
+The other four exclusions belong to earlier completed migrations.
 
 Git tracks no files in the ten removed legacy paths. Argo reports 27 Applications, 25 generated Applications, and zero shared-resource warnings.
 
@@ -777,6 +777,39 @@ Every checked PV uses the `Retain` reclaim policy.
 Prometheus now compares Synced and Progressing. Its automated sync policy remains paused for a separate review.
 
 Kamaji, Tinkerbell, Argo CD, and Cilium keep manual sync policies. Zigbee2MQTT keeps its pre-existing StatefulSet comparison difference.
+
+Commit `019be6f` removes the final tracked Phase 3 legacy path. It also removes the old Argo CD exclusion.
+
+The old README change already exists in the normalized path. The old `app.yaml` points to the removed path and is obsolete.
+
+Both the normalized Argo CD overlay and the Argo root render successfully after this cleanup.
+
+Two untracked manifests still reference the removed path:
+
+- `k8s/argocd/applications/management/platform-argocd.yaml`
+- `k8s/cloud-underlay/argocd.yaml`
+
+These files remain unchanged because they are user work. Update their paths before you add them to Git.
+
+Publish commit `019be6f`. Then sync only the `argocd` root with pruning disabled.
+
+Commit `e66a29b` removes these nine unused application roots:
+
+- `k8s/cert-manager/`
+- `k8s/cilium/`
+- `k8s/external-dns/`
+- `k8s/external-secrets-operator/`
+- `k8s/home-assistant/`
+- `k8s/meshcentral/`
+- `k8s/mosquitto/`
+- `k8s/node-feature-discovery/`
+- `k8s/prometheus-crds/`
+
+No live Application uses these roots. No repository file references them.
+
+Each root has a live normalized replacement. All nine normalized overlays render successfully.
+
+The cleanup excludes Rook, MetalLB, and other roots without an active normalized replacement.
 
 ### Previous Phase 3 migration: Actual Budget
 
@@ -882,7 +915,8 @@ Removal candidates:
 - [x] `k8s/clusters/workload/`
 - [x] the old `k8s/clusters/control-plane/`
 - [x] ten duplicate Phase 3 management paths
-- the old Argo CD path with uncommitted user changes
+- [x] the old Argo CD management path
+- [x] nine unused application roots with live normalized replacements
 - duplicate root application directories
 - obsolete Cluster API experiments
 
@@ -984,6 +1018,7 @@ Do not use one large rename commit. A large commit makes Argo review and rollbac
 | Alloy and HWPO Flex | `/tmp/k8s-homelab-alloy-hwpo-path-switch-2026-08-12.J2IJ3R` |
 | ExternalDNS, Home Assistant, Loki, and Unpoller | `/tmp/k8s-homelab-externaldns-ha-loki-unpoller-path-switch-2026-08-12.T3r4kL` |
 | Remaining eleven Applications | `/tmp/k8s-homelab-remaining-apps-path-switch-2026-08-13.hZzKuE` |
+| Final Argo CD legacy cleanup | `/tmp/k8s-homelab-argocd-legacy-cleanup-2026-08-13.CXgR8v` |
 
 These paths are local and temporary. Do not depend on them as permanent backup storage.
 
