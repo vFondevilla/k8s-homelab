@@ -25,7 +25,3 @@ records:
     recordType: CNAME
     targets:
       - llm01.fondevilla.io
-  - name: meshcentral.fondevilla.io
-    dnsName: meshcentral.fondevilla.io
-    targets:
-      - 10.1.0.4
