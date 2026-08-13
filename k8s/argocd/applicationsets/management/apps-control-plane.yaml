@@ -46,6 +46,12 @@ spec:
                 - path: k8s/apps/zigbee2mqtt/overlays/control-plane
                   exclude: true
                 - path: k8s/apps/workloads/zigbee2mqtt/overlays/management
+                - path: k8s/apps/promtail/overlays/control-plane
+                  exclude: true
+                - path: k8s/apps/platform/promtail/overlays/management
+                - path: k8s/apps/tinkerbell/overlays/control-plane
+                  exclude: true
+                - path: k8s/apps/platform/tinkerbell/overlays/management
                 - path: k8s/apps/1password-connect/overlays/control-plane
                   exclude: true
                 - path: k8s/apps/platform/1password-connect/overlays/management

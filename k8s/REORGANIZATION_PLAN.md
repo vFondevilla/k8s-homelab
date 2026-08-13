@@ -518,7 +518,9 @@ Next procedure:
 6. Make sure that all four obsolete live exclusions are absent.
 7. Make sure that all saved UIDs remain equal.
 
-### Current Phase 3 staging batch: MeshCentral, Mosquitto, NFS Subdirectory Provisioner, and Zigbee2MQTT
+### Current Phase 3 staging batch A: MeshCentral, Mosquitto, NFS Subdirectory Provisioner, and Zigbee2MQTT
+
+Staging commit `3c88d16` adds four normalized paths and three explicit PVC volume names.
 
 This batch uses these normalized paths:
 
@@ -569,6 +571,47 @@ Next procedure:
 10. Remove only the old management paths in a cleanup commit.
 
 CAUTION: The old NFS tenant overlay still uses the old shared base. Keep that base until the tenant overlay moves.
+
+### Current Phase 3 staging batch B: Promtail and Tinkerbell
+
+This batch uses these normalized paths:
+
+- `k8s/apps/platform/promtail/overlays/management`
+- `k8s/apps/platform/tinkerbell/overlays/management`
+
+The old and new renders are byte-identical:
+
+| Component | Resources | Render SHA-256 |
+| --- | ---: | --- |
+| Promtail | 7 | `d8440b1295b38284142765bb1c0415aa0b8d8a6e583a2b338558a7b2e083d630` |
+| Tinkerbell | 17 | `b73b201a3233edd10f29d9aec5db2da3750a15923d07f73989ecb7c3deb99253` |
+
+The Promtail server-side diff is empty.
+
+The Promtail Application is Synced but Progressing. Two unavailable nodes have Pending Promtail pods.
+
+The node09 Promtail pod is also not Ready. This condition existed before the path migration.
+
+The Promtail Application UID is `adf09d9c-4fe4-4eb5-a5ab-4fb6f6ba3a9b`.
+
+The Promtail DaemonSet UID is `9c4f7a7d-f863-4684-b106-1f95ad4be7b9`.
+
+Tinkerbell remains paused. Its Application has no automated sync policy and no live workload resources.
+
+The Tinkerbell Application UID is `82678336-4d22-4800-9f4a-2501070ad76d`.
+
+Next procedure:
+
+1. Publish the staging commit.
+2. Pause Promtail automated sync.
+3. Sync only `argocd` with pruning disabled.
+4. Make sure that both Application UIDs and owners stay equal.
+5. Make sure that Tinkerbell remains paused and has no live resources.
+6. Sync Promtail with pruning disabled.
+7. Make sure that the Promtail DaemonSet and pod UIDs stay equal.
+8. Restore Promtail automated sync.
+9. Keep Tinkerbell automated sync disabled.
+10. Remove both old management paths in a cleanup commit.
 
 ### Previous Phase 3 migration: Actual Budget
 
