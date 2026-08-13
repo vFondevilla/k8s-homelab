@@ -64,19 +64,24 @@ If Argo shows an unexpected prune, replacement, or shared-resource warning, stop
 
 ## Current live state
 
-The state in this section was current after the ExternalDNS, Home Assistant, Loki, and Unpoller migrations on 2026-08-13.
+This section records the live state after cleanup activation on 2026-08-13.
 
 - The manual root Application is `argocd`.
 - The root owns only `apps-control-plane`.
 - The root has no automated sync policy.
+- The root is Healthy and Synced at revision `5386ac0`.
 - `apps-control-plane` uses `applicationsSync: create-update`.
 - `apps-control-plane` uses `preserveResourcesOnDeletion: true`.
 - `apps-control-plane` has `resources-finalizer.argocd.argoproj.io`.
+- `apps-control-plane` is at generation 19 and reports `ResourcesUpToDate=True`.
 - The inventory contains 27 Applications.
 - The ApplicationSet generates 25 Applications.
 - Argo reports zero shared-resource warnings.
+- All eleven final Phase 3 Applications use normalized paths.
 - Cilium and Argo self-management remain deferred.
 - Tinkerbell remains paused and has no workload resources.
+- Kamaji remains paused because its render contains unsafe etcd changes.
+- Prometheus remains paused for a separate automation review.
 - The management cluster has no CAPI Clusters or Machines.
 - The management cluster has no Kamaji `TenantControlPlane` objects.
 - The management cluster has no KubeVirt VMs or VMIs.
@@ -747,6 +752,32 @@ Cleanup commit `90888f0` removes ten clean legacy management paths.
 
 The cleanup keeps the old Argo CD path because it contains user changes.
 
+Root revision `5386ac0` activated the cleanup with pruning disabled.
+
+The root remained Healthy and Synced after two hard refresh cycles. The root Application UID stayed equal.
+
+The ApplicationSet advanced from generation 18 to generation 19. Its UID and all eleven Application UIDs stayed equal.
+
+The ApplicationSet now keeps these five legacy exclusions:
+
+- `k8s/apps/argocd/overlays/control-plane`
+- `k8s/apps/1password-connect/overlays/control-plane`
+- `k8s/apps/external-secrets-operator/overlays/control-plane`
+- `k8s/apps/cert-manager/overlays/control-plane`
+- `k8s/apps/node-feature-discovery/overlays/control-plane`
+
+The Argo CD exclusion protects uncommitted user changes. The other exclusions belong to earlier completed migrations.
+
+Git tracks no files in the ten removed legacy paths. Argo reports 27 Applications, 25 generated Applications, and zero shared-resource warnings.
+
+The final storage comparison covered 14 PVs and 14 PVCs. Every UID stayed equal, and every volume stayed Bound.
+
+Every checked PV uses the `Retain` reclaim policy.
+
+Prometheus now compares Synced and Progressing. Its automated sync policy remains paused for a separate review.
+
+Kamaji, Tinkerbell, Argo CD, and Cilium keep manual sync policies. Zigbee2MQTT keeps its pre-existing StatefulSet comparison difference.
+
 ### Previous Phase 3 migration: Actual Budget
 
 Staging commit `3429a44` adds this normalized path:
@@ -850,6 +881,8 @@ Removal candidates:
 - `k8s/1-workload-cluster/`
 - [x] `k8s/clusters/workload/`
 - [x] the old `k8s/clusters/control-plane/`
+- [x] ten duplicate Phase 3 management paths
+- the old Argo CD path with uncommitted user changes
 - duplicate root application directories
 - obsolete Cluster API experiments
 
