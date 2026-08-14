@@ -20,15 +20,10 @@ Create these items before the first Argo CD sync:
 
 - `litellm`: custom fields `master-key` and `salt-key`. Keep `salt-key`
   permanent after LiteLLM writes encrypted data.
-- `litellm-database`: login fields `username` and `password`, plus a custom
-  field named `uri`.
+- `litellm-database`: login fields `username` and `password`.
 
-Set the database username to `litellm`. Use this URI, substituting the
-URL-encoded password:
-
-```text
-postgresql://litellm:<password>@litellm-db-rw.litellm.svc.cluster.local:5432/litellm?sslmode=require
-```
+Set the database username to `litellm`. External Secrets constructs the
+PostgreSQL URI and URL-encodes the password.
 
 Both LiteLLM keys should be long random values beginning with `sk-`.
 
