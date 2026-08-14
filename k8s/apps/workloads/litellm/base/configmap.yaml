@@ -6,6 +6,11 @@ metadata:
 data:
   config.yaml: |
     model_list:
+      - model_name: chatgpt/gpt-5.6-sol
+        model_info:
+          mode: responses
+        litellm_params:
+          model: chatgpt/gpt-5.6-sol
       - model_name: chatgpt/gpt-5.4
         model_info:
           mode: responses
@@ -41,6 +46,7 @@ data:
       master_key: os.environ/LITELLM_MASTER_KEY
       database_url: os.environ/DATABASE_URL
       store_model_in_db: true
+      store_prompts_in_spend_logs: true
 
     litellm_settings:
       drop_params: true
