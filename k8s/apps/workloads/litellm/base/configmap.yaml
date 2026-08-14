@@ -5,7 +5,37 @@ metadata:
   namespace: litellm
 data:
   config.yaml: |
-    model_list: []
+    model_list:
+      - model_name: chatgpt/gpt-5.4
+        model_info:
+          mode: responses
+        litellm_params:
+          model: chatgpt/gpt-5.4
+      - model_name: chatgpt/gpt-5.4-pro
+        model_info:
+          mode: responses
+        litellm_params:
+          model: chatgpt/gpt-5.4-pro
+      - model_name: chatgpt/gpt-5.3-codex
+        model_info:
+          mode: responses
+        litellm_params:
+          model: chatgpt/gpt-5.3-codex
+      - model_name: chatgpt/gpt-5.3-codex-spark
+        model_info:
+          mode: responses
+        litellm_params:
+          model: chatgpt/gpt-5.3-codex-spark
+      - model_name: chatgpt/gpt-5.3-instant
+        model_info:
+          mode: responses
+        litellm_params:
+          model: chatgpt/gpt-5.3-instant
+      - model_name: chatgpt/gpt-5.3-chat-latest
+        model_info:
+          mode: responses
+        litellm_params:
+          model: chatgpt/gpt-5.3-chat-latest
 
     general_settings:
       master_key: os.environ/LITELLM_MASTER_KEY

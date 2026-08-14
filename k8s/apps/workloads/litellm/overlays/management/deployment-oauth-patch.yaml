@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: litellm
+  namespace: litellm
+spec:
+  template:
+    spec:
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+        - name: litellm
+          env:
+            - name: CHATGPT_TOKEN_DIR
+              value: /var/lib/litellm/chatgpt
+            - name: CHATGPT_AUTH_FILE
+              value: auth.json
+          volumeMounts:
+            - name: chatgpt-oauth
+              mountPath: /var/lib/litellm/chatgpt
+      volumes:
+        - name: chatgpt-oauth
+          persistentVolumeClaim:
+            claimName: litellm-chatgpt-oauth

@@ -4,3 +4,6 @@ namespace: litellm
 resources:
   - ../../base
   - database.yaml
+  - oauth-pvc.yaml
+patches:
+  - path: deployment-oauth-patch.yaml
