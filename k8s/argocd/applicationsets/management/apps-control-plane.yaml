@@ -53,6 +53,7 @@ spec:
                 - path: k8s/apps/workloads/actualbudget/overlays/management
                 - path: k8s/apps/platform/cloudnative-pg/overlays/management
                 - path: k8s/apps/platform/democratic-csi/overlays/management
+                - path: k8s/apps/platform/reloader/overlays/management
                 - path: k8s/apps/workloads/litellm/overlays/management
   template:
     metadata:

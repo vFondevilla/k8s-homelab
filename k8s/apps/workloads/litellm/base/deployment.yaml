@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: litellm
   namespace: litellm
+  annotations:
+    configmap.reloader.stakater.com/auto: "true"
   labels:
     app.kubernetes.io/name: litellm
     app.kubernetes.io/component: gateway
