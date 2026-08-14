@@ -53,6 +53,7 @@ spec:
                 - path: k8s/apps/workloads/actualbudget/overlays/management
                 - path: k8s/apps/platform/cloudnative-pg/overlays/management
                 - path: k8s/apps/platform/democratic-csi/overlays/management
+                - path: k8s/apps/workloads/litellm/overlays/management
   template:
     metadata:
       name: '{{.name}}-{{ if or (eq (index (splitList "/" .path.path) 2) "platform") (eq (index (splitList "/" .path.path) 2) "workloads") }}{{ index (splitList "/" .path.path) 3 }}{{ else }}{{ index (splitList "/" .path.path) 2 }}{{ end }}'
