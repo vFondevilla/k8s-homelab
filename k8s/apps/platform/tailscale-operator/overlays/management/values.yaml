@@ -1,0 +1,24 @@
+installCRDs: true
+
+operatorConfig:
+  defaultTags:
+    - tag:k8s-operator
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+ingressClass:
+  enabled: true
+  name: tailscale
+
+proxyConfig:
+  defaultTags: tag:k8s
+  firewallMode: auto
+
+apiServerProxyConfig:
+  allowImpersonation: "false"
+  mode: "false"
