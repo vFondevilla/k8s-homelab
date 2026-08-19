@@ -6,21 +6,6 @@ metadata:
 data:
   config.yaml: |
     model_list:
-      - model_name: chatgpt/gpt-5.6-sol
-        model_info:
-          mode: responses
-        litellm_params:
-          model: chatgpt/gpt-5.6-sol
-      - model_name: chatgpt/gpt-5.6-luna
-        model_info:
-          mode: responses
-        litellm_params:
-          model: chatgpt/gpt-5.6-luna
-      - model_name: chatgpt/gpt-5.6-terra
-        model_info:
-          mode: responses
-        litellm_params:
-          model: chatgpt/gpt-5.6-terra
       - model_name: local/Qwen3.6
         litellm_params:
           model: openai/unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_XL
