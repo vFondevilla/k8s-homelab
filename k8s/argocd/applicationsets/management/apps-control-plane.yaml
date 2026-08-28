@@ -41,6 +41,7 @@ spec:
                 - path: k8s/apps/platform/argocd/overlays/management
                 - path: k8s/apps/platform/kamaji/overlays/management
                 - path: k8s/apps/platform/prometheus/overlays/management
+                - path: k8s/apps/platform/victoria-metrics/overlays/management
                 - path: k8s/apps/platform/cilium/overlays/management
                 - path: k8s/apps/platform/cluster-api/overlays/management
                 - path: k8s/apps/platform/1password-connect/overlays/management
@@ -56,6 +57,7 @@ spec:
                 - path: k8s/apps/platform/reloader/overlays/management
                 - path: k8s/apps/platform/tailscale-operator/overlays/management
                 - path: k8s/apps/workloads/litellm/overlays/management
+                - path: k8s/apps/platform/multus/overlays/management
   template:
     metadata:
       name: '{{.name}}-{{ if or (eq (index (splitList "/" .path.path) 2) "platform") (eq (index (splitList "/" .path.path) 2) "workloads") }}{{ index (splitList "/" .path.path) 3 }}{{ else }}{{ index (splitList "/" .path.path) 2 }}{{ end }}'
