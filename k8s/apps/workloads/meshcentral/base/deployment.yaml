@@ -13,6 +13,10 @@ spec:
         app: meshcentral
     spec:
       hostNetwork: true
+      # Keep MeshCentral off the AMT-managed nodes. A pod colocated with a
+      # managed host cannot reach that host's out-of-band AMT network stack.
+      nodeSelector:
+        kubernetes.io/hostname: worker01
       containers:
         - name: meshcentral
           image: typhonragewind/meshcentral:latest
