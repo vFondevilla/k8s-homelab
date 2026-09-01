@@ -12,5 +12,5 @@ images:
   # the application's published image and immutable commit SHA before deploy.
   - name: hwpo-flex
     newName: zot.apps.fondevilla.io/hwpo-flex
-    newTag: cdd2c09312e598b74aaf6ab1176f8f9b96e21cd3
+    newTag: d8580645eafaa164991383c0ce195d4dc098e481
 
