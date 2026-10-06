@@ -9,7 +9,7 @@ data:
       - model_name: local/Qwen3.8-Flash-Next
         litellm_params:
           model: openai/halogen-qwen3.8-flash-next
-          api_base: http://llm01.fondevilla.io:8761/v1
+          api_base: http://llm01.fondevilla.io:8731/v1
           api_key: local-no-auth
 
 
