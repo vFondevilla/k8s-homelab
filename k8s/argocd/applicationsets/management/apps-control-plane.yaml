@@ -58,6 +58,7 @@ spec:
                 - path: k8s/apps/platform/tailscale-operator/overlays/management
                 - path: k8s/apps/workloads/litellm/overlays/management
                 - path: k8s/apps/workloads/hindsight/overlays/management
+                - path: k8s/apps/workloads/hermes-agent/overlays/management
                 - path: k8s/apps/platform/multus/overlays/management
   template:
     metadata:
@@ -77,3 +78,10 @@ spec:
         syncOptions:
           - CreateNamespace=true
           - ServerSideApply=true
+  templatePatch: |
+    {{- if eq .path.path "k8s/apps/workloads/hermes-agent/overlays/management" }}
+    spec:
+      syncPolicy:
+        automated:
+          prune: false
+    {{- end }}
