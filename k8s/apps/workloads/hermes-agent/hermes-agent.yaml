@@ -1,0 +1,136 @@
+---
+# Requires KubeVirt, CDI, and the nfs-client StorageClass.
+# Managed separately from the VM so deleting the VM alone preserves its disk.
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: hermes-agent-rootdisk
+  namespace: kubevirt
+spec:
+  source:
+    http:
+      url: https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img
+  storage:
+    storageClassName: nfs-client
+    accessModes:
+      - ReadWriteMany
+    volumeMode: Filesystem
+    resources:
+      requests:
+        storage: 50Gi
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: hermes-agent
+  namespace: kubevirt
+spec:
+  runStrategy: Always
+  template:
+    metadata:
+      labels:
+        kubevirt.io/vm: hermes-agent
+    spec:
+      accessCredentials:
+        - sshPublicKey:
+            source:
+              secret:
+                secretName: hermes-agent-ssh
+            propagationMethod:
+              qemuGuestAgent:
+                users:
+                  - ubuntu
+      domain:
+        cpu:
+          cores: 4
+        resources:
+          requests:
+            memory: 8Gi
+        devices:
+          disks:
+            - name: rootdisk
+              bootOrder: 1
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+            - name: podnet
+              macAddress: d2:ca:17:e6:8c:21
+              masquerade: {}
+      networks:
+        - name: podnet
+          pod: {}
+      volumes:
+        - name: rootdisk
+          dataVolume:
+            name: hermes-agent-rootdisk
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            networkData: |
+              version: 2
+              ethernets:
+                enp1s0:
+                  dhcp4: true
+                  dhcp6: true
+            userData: |
+              #cloud-config
+              hostname: hermes-agent
+              users:
+                - name: ubuntu
+                  groups: [sudo]
+                  sudo: ALL=(ALL) NOPASSWD:ALL
+                  shell: /bin/bash
+                  lock_passwd: true
+              # SSH keys are managed by QEMU guest agent from hermes-agent-ssh.
+              ssh_pwauth: false
+              disable_root: true
+              package_update: true
+              packages:
+                - qemu-guest-agent
+              runcmd:
+                - [systemctl, enable, --now, qemu-guest-agent]
+              growpart:
+                mode: auto
+                devices: ['/']
+              resize_rootfs: true
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hermes-agent
+  namespace: kubevirt
+  labels:
+    kubevirt.io/vm: hermes-agent
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: hermes.fondevilla.io
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+  selector:
+    kubevirt.io/vm: hermes-agent
+  ports:
+    - name: ssh
+      port: 22
+      targetPort: 22
+      protocol: TCP
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP
+---
+# Public keys imported from https://github.com/vFondevilla.keys.
+# Update this Secret to synchronize keys into the running VM.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: hermes-agent-ssh
+  namespace: kubevirt
+type: Opaque
+stringData:
+  authorized_keys: |
+    ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC5IL4a98AKqLT7jSnRWDSyB1xlZq4AmBYdbkZake3P08Eohlanvfa89LNCCeQGKSbReVrSdrMTr13by6vA1YfJ04hYPCtWY4pMCogPkZG2CQb48oVZNLMPXtsssK4kALaF88ABAJ/OA67sca8PWYhczh5E/uwsZHxHqmZs2dMV0Wn1k6bjFdgUw01EK8CqZtdKbm+F7dmu2Wiq5OCxdQmHmsnFm51nKW8sN5EvfCl4RbnfHu+GIC8BD1QTfMs6YxpH2R6Nc9CdFO3fowetfhz4WAMClO50FleuBANgJVbEzZl5Di9aGcBSrzOXQuycoRMjBBzOk1OCMeCZJrAdXE5r
+    ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDU0Oc/ug4rRwRLsXIbVRbJQvIJc3Xb4m2gFZe8iGC2ZJY0EbetbtGdETpzGadBYhrBbH618EXb1yflYyEQnHFpx8ps9e0I16kXzMCpVuQBT27uFEm/bXuea0Jb5GqRjgITAhlF90WJ+aNbVnZyfyG05Uvx82oCavk0MJsVdSC7391lWnV0PMlH0U2y3YPTMy6Z6Lv5hKWDduhXyNL14YWqo5z4A1O+2OwOGnEDEN/V+tISeue5UyBiNuHawPycHTIKQ5hIgnlToRSq1EaJnM+ugL3f5XuDtN27nMkA5gJGmU2jGf3PeXoziC03AzByWYh9de10v+q0LL69X5fY6lacd643I873gNJeuD6r3SUOS0gLdTyA9x/7efsGxLjTwhbiNBkMhuhEdzef9Ded/qIgO/XkycEhygWDeTT8AgZ8WocKeuTLi7KKswxr7zdMQzg7EtiyTxCLqgHo0X7os3jhd3H/vNh1Og+SMBaHOsiOJzy3GgzwYXZvfKb5DxSorEk=
+    ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDmeYUhyDS0md1g62LRdaYPEYmikiJdA4X6+2Ci2XOmIzj4cVYzvf7MvITG6lV2G4PrSJK3n7uviSrrqUAZC6ug++oBs67mYmR+OBiV7otKTcqcJaaxoKrfMwhBovOMJ4eL7O4oVzp1FzL/MobA7rdf+b3NCY68LEwqveqBd1cSKLWgHI2s+1+dOcdvLmY/DA5EEm76js61FAbz+fiYSdhzY4HUunlHb9PyNW/TPi1fvpFTK8btjuh3Mz5fAkZSidrwmdq8Q4L2AuzSpYfGaEr9z5Ln1j/3JSCRYuJEGAdkGSatbA2VPKaoyu/EQOCdHnAB59Xgj9gNfLdxMW/ycNkleN6uLTeniFHTDcbWXT4uHG4YBr0UZi/ApEWlaAiloRrQVom5zKl2DowO8TpEtyY8rU+t+u62axuPwt1xaInvZHlrfeTixdEUWHJXHNxP/RmbghjdgtcidJuU1Bc8hSWDszmHAy0qFcd5nOHcwgvuEjxoJ/D9Fa7CqMU7Sx35+8E=
