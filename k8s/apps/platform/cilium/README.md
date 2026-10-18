@@ -10,7 +10,7 @@ The management overlay is `overlays/management/`.
 
 The tenant overlay is `overlays/tenant/`. It is a reusable starting point and needs tenant-specific API values.
 
-Kube-OVN and Multus are not alternative primary CNIs. Use them only in an explicit Cilium chain.
+Multus delegates the management cluster's default network to Cilium. Kube-OVN is no longer installed in the management cluster.
 
 ## Dependencies
 

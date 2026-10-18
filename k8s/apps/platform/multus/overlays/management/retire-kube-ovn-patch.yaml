@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kube-multus-ds
+  namespace: kube-system
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: retire-kube-ovn-config
+          image: ghcr.io/k8snetworkplumbingwg/multus-cni:snapshot-thick
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              # Keep retired files outside the directory scanned by CNI plugins.
+              mkdir -p /host/etc/cni/retired-kube-ovn
+              for name in 00-kube-ovn.conflist 01-kube-ovn.conflist \
+                          00-kube-ovn.conflist.cilium_bak 01-kube-ovn.conflist.cilium_bak; do
+                if [ -f "/host/etc/cni/net.d/$name" ]; then
+                  mv "/host/etc/cni/net.d/$name" "/host/etc/cni/retired-kube-ovn/$name"
+                fi
+              done
+          securityContext:
+            privileged: true
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 64Mi
+          volumeMounts:
+            - name: host-cni-config
+              mountPath: /host/etc/cni
+      volumes:
+        - name: host-cni-config
+          hostPath:
+            path: /etc/cni
+            type: Directory

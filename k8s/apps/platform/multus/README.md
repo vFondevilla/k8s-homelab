@@ -2,7 +2,7 @@
 
 Multus provides additional network interfaces for Kubernetes pods.
 
-Cilium remains the primary CNI. Use Multus only in an explicit Cilium chain.
+Cilium remains the primary CNI. Multus delegates the default network to Cilium and provides optional additional interfaces.
 
 ## Overlays
 
@@ -14,13 +14,19 @@ Both overlays use Multus `v4.2.3` and the thick daemonset.
 
 The patch gives the Multus container explicit resource requests and limits.
 
-## Live-state constraint
+## Management configuration
 
-The management cluster contains a manually installed `kube-multus-ds` DaemonSet.
+The `in-cluster-multus` Argo CD Application manages the management overlay.
 
-No live Argo Application owns Multus. This path move does not change the live DaemonSet.
+The daemon configuration selects `05-cilium.conflist` through `multusMasterCNI`.
+This explicit selection prevents an earlier CNI filename from replacing Cilium as the default network.
 
-Do not add Multus to Argo discovery until you compare the normalized render with the live resources.
+An init container moves retired Kube-OVN CNI files into `/etc/cni/retired-kube-ovn` on each node.
+The directory is outside the active CNI configuration directory.
+The init container also covers nodes that return after an outage.
+
+Cilium uses `cni.exclusive: false` so that its configuration can coexist with the Multus configuration.
+Kube-OVN is no longer installed in the management cluster.
 
 ## Render
 
