@@ -3,3 +3,4 @@ kind: Kustomization
 namespace: kubevirt
 resources:
   - ../../base
+  - ingress.yaml
