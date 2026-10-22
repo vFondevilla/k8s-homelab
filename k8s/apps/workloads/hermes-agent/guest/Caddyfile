@@ -1,0 +1,36 @@
+:80 {
+	redir /inmobiliaria /inmobiliaria/ 308
+
+	handle_path /inmobiliaria/* {
+		reverse_proxy 127.0.0.1:8765
+	}
+
+	@hermes host hermes.apps.fondevilla.io
+	handle @hermes {
+		# Keep the dashboard's own /api/* endpoints intact. Only /openai/*
+		# goes to the gateway's separately authenticated API adapter.
+		route {
+			redir /openai /openai/ 308
+			handle_path /openai/* {
+				reverse_proxy 127.0.0.1:8642 {
+					header_up X-Forwarded-Proto https
+					flush_interval -1
+				}
+			}
+			handle {
+				reverse_proxy 127.0.0.1:9119 {
+					header_up X-Forwarded-Proto https
+				}
+			}
+		}
+	}
+
+	handle / {
+		header Content-Type "text/html; charset=utf-8"
+		respond "<!doctype html><html lang=\"es\"><meta charset=\"utf-8\"><title>Proyectos</title><h1>Proyectos</h1><ul><li><a href=\"/inmobiliaria/\">Monitor inmobiliario</a></li></ul></html>" 200
+	}
+
+	handle {
+		respond "Proyecto no encontrado" 404
+	}
+}
