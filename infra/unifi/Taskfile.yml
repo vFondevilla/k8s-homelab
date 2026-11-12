@@ -1,0 +1,77 @@
+version: "3"
+
+tasks:
+  default:
+    desc: List UniFi infrastructure tasks
+    cmds:
+      - task --list
+
+  init:
+    desc: Initialize the R2 state backend
+    silent: true
+    dir: '{{.TASKFILE_DIR}}'
+    cmds:
+      - |
+        op run --env-file=.env.op -- sh -eu -c '
+          : "${R2_ACCOUNT_ID:?Set R2_ACCOUNT_ID in .env.op}"
+          : "${R2_BUCKET:?Set R2_BUCKET in .env.op}"
+          mise exec -- tofu init -input=false \
+            -backend-config="bucket=${R2_BUCKET}" \
+            -backend-config="endpoints={s3=\"https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com\"}"
+        '
+
+  validate:
+    desc: Check formatting and provider configuration
+    dir: '{{.TASKFILE_DIR}}'
+    cmds:
+      - mise exec -- tofu fmt -check
+      - mise exec -- tofu validate
+
+  import:
+    desc: Import the existing BGP configuration without changing the gateway
+    silent: true
+    dir: '{{.TASKFILE_DIR}}'
+    cmds:
+      - |
+        op run --env-file=.env.op -- sh -eu -c '
+          mise exec -- tofu import -lock-timeout=60s unifi_bgp.gateway "${UNIFI_SITE:-default}"
+          python3 backup_state.py
+        '
+
+  plan:
+    desc: Review changes to the imported BGP configuration
+    silent: true
+    dir: '{{.TASKFILE_DIR}}'
+    cmds:
+      - task: validate
+      - |
+        op run --env-file=.env.op -- sh -eu -c '
+          resource=$(mise exec -- tofu state list unifi_bgp.gateway)
+          if [ -z "$resource" ]; then
+            echo "Import the existing gateway configuration with task import first." >&2
+            exit 1
+          fi
+          mise exec -- tofu plan -lock-timeout=60s -out=unifi.tfplan
+        '
+
+  backup:
+    desc: Copy the current remote state to a unique R2 backup object
+    silent: true
+    dir: '{{.TASKFILE_DIR}}'
+    cmds:
+      - op run --env-file=.env.op -- python3 backup_state.py
+
+  apply:
+    desc: Back up the state and apply the saved plan
+    silent: true
+    dir: '{{.TASKFILE_DIR}}'
+    preconditions:
+      - sh: test -f unifi.tfplan
+        msg: Create and review a saved plan with task plan first.
+    cmds:
+      - |
+        op run --env-file=.env.op -- sh -eu -c '
+          python3 backup_state.py
+          mise exec -- tofu apply -lock-timeout=60s unifi.tfplan
+          python3 backup_state.py
+        '

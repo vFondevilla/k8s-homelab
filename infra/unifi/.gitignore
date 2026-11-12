@@ -1,0 +1,5 @@
+.env
+*.tfplan
+*.tfplan.*
+.local/
+__pycache__/
