@@ -1,0 +1,30 @@
+version: "3"
+
+includes:
+  stack:
+    taskfile: ../../taskfiles/stack.yml
+    dir: '{{.TASKFILE_DIR}}'
+    flatten: true
+    vars:
+      PLAN_FILE: mikrotik.tfplan
+      REQUIRED_RESOURCE: routeros_system_identity.switch
+
+tasks:
+  default:
+    desc: List MikroTik infrastructure tasks
+    cmds:
+      - task --list
+
+  import:
+    desc: Adopt the existing switch configuration without device writes
+    silent: true
+    cmds:
+      - task: validate
+      - sh ../../scripts/with-env.sh python3 adopt.py
+
+  check:no-changes:
+    desc: Require a complete live plan with zero changes
+    silent: true
+    cmds:
+      - task: validate
+      - sh ../../scripts/with-env.sh python3 check_no_changes.py

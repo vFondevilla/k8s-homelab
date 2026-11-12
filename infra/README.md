@@ -13,6 +13,7 @@ infra/
   stacks/
     backend.tm.hcl             Shared R2 backend generator
     unifi/                     Existing gateway BGP stack
+    mikrotik/                  Existing CRS305 SFP switch configuration
     proxmox/provider.tm.hcl     Provider generator for future Proxmox stacks
   templates/proxmox-vm/         VM stack template, excluded from orchestration
 ```
@@ -54,6 +55,7 @@ mise exec -- terramate -C stacks/unifi run task apply
 You can also run these tasks directly from the stack directory.
 Direct Task commands do not use Terramate's Git safeguards.
 The UniFi [runbook](stacks/unifi/README.md) covers import and BGP recovery.
+The MikroTik [runbook](stacks/mikrotik/README.md) covers adoption and a live zero-change check.
 
 For several stacks, select a directory or a tag:
 
