@@ -1,0 +1,28 @@
+version: "3"
+
+includes:
+  stack:
+    taskfile: ../../taskfiles/stack.yml
+    dir: '{{.TASKFILE_DIR}}'
+    flatten: true
+    vars:
+      PLAN_FILE: unifi.tfplan
+      REQUIRED_RESOURCE: unifi_bgp.gateway
+
+tasks:
+  default:
+    desc: List UniFi infrastructure tasks
+    cmds:
+      - task --list
+
+  import:
+    desc: Import the existing BGP configuration without changing the gateway
+    silent: true
+    dir: '{{.TASKFILE_DIR}}'
+    cmds:
+      - |
+        sh ../../scripts/with-env.sh sh -eu -c '
+          test "$(mise exec -- tofu workspace show)" = default
+          mise exec -- tofu import -lock-timeout=60s unifi_bgp.gateway "${UNIFI_SITE:-default}"
+          python3 ../../scripts/backup_state.py
+        '

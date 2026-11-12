@@ -9,7 +9,10 @@ State is stored in Cloudflare R2 at `s3://homelab-tfstate/unifi/terraform.tfstat
 The S3 backend uses a lock object to prevent concurrent state changes.
 Credentials, local state files, and saved plans are excluded from Git.
 Include `.env.op` and the provider lock file, `.terraform.lock.hcl`, in Git.
-`.env.op` contains only non-secret settings and 1Password references.
+The stack's `.env.op` contains UniFi configuration and 1Password references.
+The shared `../../.env.op` contains R2 configuration and 1Password references.
+Terramate generates `_terramate_backend.tf` from `../backend.tm.hcl` and the state key in `stack.tm.hcl`.
+Commit generated files after `task generate`.
 
 ## Create the state bucket
 
@@ -38,12 +41,13 @@ The AWS CLI connects to R2; no AWS account is required.
 From the repository root:
 
 ```sh
-cd infra/unifi
+cd infra
 mise trust
 mise install
+cd stacks/unifi
 ```
 
-The repository's `.env.op` contains the account settings and references to the existing 1Password items.
+The shared and stack `.env.op` files contain the account settings and references to the existing 1Password items.
 No local configuration copy is required.
 Update `.env.op` when those settings or references change, and commit the changes.
 The tasks automatically use `op run` to resolve `.env.op` references into environment variables.
@@ -69,7 +73,7 @@ See the [provider authentication documentation](https://github.com/ubiquiti-comm
 
 ## Adopt the existing configuration
 
-Run these commands from `infra/unifi`:
+For the first import, run these commands from `infra/stacks/unifi`:
 
 ```sh
 task init
@@ -78,6 +82,7 @@ task plan
 ```
 
 Import reads the existing gateway configuration into R2 state without changing BGP.
+If the resource already exists in state, skip `task import`.
 It then creates a backup of the imported state.
 The first plan must show **no changes** before routine management starts.
 If it proposes changes, compare the live configuration with `bgp.conf` and resolve the differences first.
@@ -139,7 +144,7 @@ For BGP rollback, restore the required Git revision of `bgp.conf`, then review a
 Provider validation does not require gateway or R2 credentials:
 
 ```sh
-mise exec -- tofu init -backend=false
+task init:local
 task validate
 ```
 

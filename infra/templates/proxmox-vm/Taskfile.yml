@@ -1,0 +1,7 @@
+version: "3"
+
+includes:
+  stack:
+    taskfile: ../../../taskfiles/stack.yml
+    dir: '{{.TASKFILE_DIR}}'
+    flatten: true

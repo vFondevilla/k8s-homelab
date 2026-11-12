@@ -1,0 +1,88 @@
+version: "3"
+
+vars:
+  PLAN_FILE: '{{.PLAN_FILE | default "plan.tfplan"}}'
+  REQUIRED_RESOURCE: '{{.REQUIRED_RESOURCE | default ""}}'
+
+env:
+  INFRA_SCRIPTS: '{{.TASKFILE_DIR}}/../scripts'
+  PLAN_FILE: '{{.PLAN_FILE}}'
+  REQUIRED_RESOURCE: '{{.REQUIRED_RESOURCE}}'
+
+tasks:
+  generate:
+    desc: Generate the stack backend configuration
+    cmds:
+      - mise exec -- terramate generate
+
+  init:
+    desc: Initialize the R2 state backend
+    silent: true
+    cmds:
+      - task: generate
+      - |
+        sh "$INFRA_SCRIPTS/with-env.sh" sh -eu -c '
+          : "${R2_ACCOUNT_ID:?Set R2_ACCOUNT_ID in infra/.env.op}"
+          : "${R2_BUCKET:?Set R2_BUCKET in infra/.env.op}"
+          mise exec -- tofu init -input=false \
+            -backend-config="bucket=${R2_BUCKET}" \
+            -backend-config="endpoints={s3=\"https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com\"}"
+        '
+
+  init:local:
+    desc: Install providers without connecting to R2
+    cmds:
+      - task: generate
+      - mise exec -- tofu init -backend=false -input=false
+
+  validate:
+    desc: Check formatting and provider configuration
+    cmds:
+      - task: generate
+      - mise exec -- tofu fmt -check
+      - mise exec -- tofu validate
+
+  plan:
+    desc: Create a saved plan for review
+    silent: true
+    cmds:
+      - task: validate
+      - |
+        sh "$INFRA_SCRIPTS/with-env.sh" sh -eu -c '
+          test "$(mise exec -- tofu workspace show)" = default || {
+            echo "Use the default OpenTofu workspace. Create a separate stack for each environment." >&2
+            exit 1
+          }
+          if [ -n "$REQUIRED_RESOURCE" ]; then
+            resource=$(mise exec -- tofu state list "$REQUIRED_RESOURCE")
+            if [ -z "$resource" ]; then
+              echo "Import the existing resource with task import first." >&2
+              exit 1
+            fi
+          fi
+          mise exec -- tofu plan -input=false -lock-timeout=60s -out="$PLAN_FILE"
+        '
+
+  backup:
+    desc: Copy the current state to a unique R2 backup object
+    silent: true
+    cmds:
+      - sh "$INFRA_SCRIPTS/with-env.sh" python3 "$INFRA_SCRIPTS/backup_state.py"
+
+  apply:
+    desc: Back up the state and apply the reviewed saved plan
+    silent: true
+    preconditions:
+      - sh: test -f "$PLAN_FILE"
+        msg: Create and review a saved plan with task plan first.
+    cmds:
+      - |
+        sh "$INFRA_SCRIPTS/with-env.sh" sh -eu -c '
+          if [ -n "$REQUIRED_RESOURCE" ]; then
+            python3 "$INFRA_SCRIPTS/backup_state.py"
+          else
+            python3 "$INFRA_SCRIPTS/backup_state.py" --allow-missing
+          fi
+          mise exec -- tofu apply -input=false -lock-timeout=60s "$PLAN_FILE"
+          python3 "$INFRA_SCRIPTS/backup_state.py"
+        '

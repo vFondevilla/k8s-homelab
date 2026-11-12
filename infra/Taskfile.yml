@@ -1,0 +1,35 @@
+version: "3"
+
+tasks:
+  default:
+    cmds:
+      - task --list
+
+  list:
+    desc: List infrastructure stacks
+    cmds:
+      - mise exec -- terramate list
+
+  generate:
+    desc: Generate configuration for all infrastructure stacks
+    cmds:
+      - mise exec -- terramate generate
+
+  fmt:
+    desc: Format Terramate and OpenTofu configuration
+    cmds:
+      - mise exec -- terramate fmt
+      - mise exec -- tofu fmt -recursive
+
+  validate:
+    desc: Validate all stacks without backend credentials (install providers first)
+    cmds:
+      - mise exec -- terramate fmt --check
+      - mise exec -- terramate generate
+      - mise exec -- terramate run --disable-safeguards=git task validate
+
+  init:local:
+    desc: Install providers in all stacks without connecting to R2
+    cmds:
+      - mise exec -- terramate generate
+      - mise exec -- terramate run --disable-safeguards=git task init:local
