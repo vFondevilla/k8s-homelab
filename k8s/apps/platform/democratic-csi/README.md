@@ -49,6 +49,12 @@ This prevents probe errors from exposing the API key through gRPC, sidecar logs,
 It checks successful requests, HTTP 401 and 500 responses, probe errors, connection errors, debug logs, and rejection of plain HTTP.
 The test uses a fake credential and an ephemeral TLS certificate. It makes no TrueNAS requests.
 
+Run the test against a running CSI pod:
+
+```sh
+python3 k8s/apps/platform/democratic-csi/tests/check-http-safety.py --context homelab --pod POD_NAME
+```
+
 ## Credential recovery
 
 Both ExternalSecrets read the `password` field of `truenas democratic csi api token` in the `Lab` vault.
