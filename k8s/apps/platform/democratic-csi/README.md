@@ -73,3 +73,14 @@ On 2026-11-15, TrueNAS reported that an insecure transport attempt revoked the C
 The Kubernetes Secrets matched 1Password, but HTTPS authentication returned HTTP 401.
 The driver also included its authorization header in failed probe responses.
 Rotation invalidates the exposed credential. Historical logs and events can still contain the old value until their retention periods expire.
+
+The replacement key passed HTTPS authentication. The old key returned HTTP 401.
+Both controllers returned to full readiness after Secret synchronization and restart.
+The iSCSI test passed provisioning, an 8 MiB write, and checksum verification from a fresh pod on `node09`.
+
+NFS provisioning passed, but the NFS mount test failed with `No such file or directory`.
+The test dataset existed, and TrueNAS exported it to the configured storage addresses.
+Node09 also had NFS mounts for `10.254.0.3` whose effective server address was `10.1.0.3`.
+The TrueNAS export cache recorded a denied lookup for the CSI path from the management subnet.
+This evidence points to NFS connection reuse through the management network, which the CSI export host list excludes.
+NFS data access requires a separate correction before workload adoption.
