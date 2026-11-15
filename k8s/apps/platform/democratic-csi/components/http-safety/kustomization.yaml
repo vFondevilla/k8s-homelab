@@ -1,0 +1,33 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+configMapGenerator:
+  - name: democratic-csi-http-safety
+    files:
+      - http-safety.cjs
+patches:
+  - target:
+      group: apps
+      version: v1
+      kind: (Deployment|DaemonSet)
+      name: truenas-.*-democratic-csi-.*
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: unused
+      spec:
+        template:
+          spec:
+            containers:
+              - name: csi-driver
+                env:
+                  - name: NODE_OPTIONS
+                    value: --require=/opt/csi-http-safety/http-safety.cjs
+                volumeMounts:
+                  - name: http-safety
+                    mountPath: /opt/csi-http-safety
+                    readOnly: true
+            volumes:
+              - name: http-safety
+                configMap:
+                  name: democratic-csi-http-safety
