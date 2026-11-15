@@ -1,0 +1,143 @@
+---
+- name: Reconcile the GX10 DS4 inference service
+  hosts: gx10
+  become: false
+  gather_facts: true
+  tasks:
+    - name: Require the existing GX10 operating system and service account
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.distribution == 'Ubuntu'
+          - ansible_facts.distribution_version == '24.04'
+          - ansible_facts.architecture == 'aarch64'
+          - ansible_facts.user_id == 'victor'
+        fail_msg: This playbook manages the existing Ubuntu 24.04 ARM64 installation as victor.
+
+    - name: Inspect the existing CUDA build, models, and readiness client
+      ansible.builtin.stat:
+        path: '{{ item.path }}'
+        get_checksum: false
+        get_mime: false
+        get_attributes: false
+      loop:
+        - path: '{{ ansible_facts.user_dir }}/code/ds4/ds4-server'
+          executable: true
+        - path: '{{ ansible_facts.user_dir }}/gguf/DeepSeek-V4-Flash-IQ2XXS-w2Q2K-AProjQ8-SExpQ8-OutQ8-chat-v2-imatrix-0731.gguf'
+          executable: false
+        - path: '{{ ansible_facts.user_dir }}/gguf/DSpark-drafter-Q2K-Q8-0731.gguf'
+          executable: false
+        - path: /usr/bin/curl
+          executable: true
+      loop_control:
+        label: '{{ item.path }}'
+      register: gx10_ds4_prerequisites
+
+    - name: Require the runtime and both model files before changing the service
+      ansible.builtin.assert:
+        quiet: true
+        that:
+          - item.stat.isreg | default(false)
+          - item.stat.readable | default(false)
+          - not item.item.executable or (item.stat.executable | default(false))
+        fail_msg: 'Restore the DS4 CUDA build and GGUF files first; missing or inaccessible prerequisite: {{ item.item.path }}'
+      loop: '{{ gx10_ds4_prerequisites.results }}'
+      loop_control:
+        label: '{{ item.item.path }}'
+
+    - name: Inspect the current unit for first-install check mode
+      ansible.builtin.stat:
+        path: '{{ ansible_facts.user_dir }}/.config/systemd/user/ds4-server.service'
+        get_checksum: false
+        get_mime: false
+        get_attributes: false
+      register: gx10_ds4_existing_unit
+
+    - name: Keep the user manager running after logout and at boot
+      ansible.builtin.command:
+        argv:
+          - loginctl
+          - --no-ask-password
+          - enable-linger
+          - '{{ ansible_facts.user_id }}'
+        creates: '/var/lib/systemd/linger/{{ ansible_facts.user_id }}'
+
+    - name: Preserve launcher and configuration directories
+      ansible.builtin.file:
+        path: '{{ ansible_facts.user_dir }}/{{ item.path }}'
+        state: directory
+        mode: '{{ item.mode }}'
+      loop:
+        - path: .local/bin
+          mode: '0775'
+        - path: .config/ds4
+          mode: '0775'
+        - path: .config/systemd/user
+          mode: '0755'
+      loop_control:
+        label: '{{ item.path }}'
+
+    - name: Install the DS4 launcher
+      ansible.builtin.copy:
+        src: gx10/ds4-serve
+        dest: '{{ ansible_facts.user_dir }}/.local/bin/ds4-serve'
+        mode: '0775'
+        validate: /bin/bash -n %s
+      notify: Restart DS4
+
+    - name: Install the model catalog used by the launcher
+      ansible.builtin.copy:
+        src: gx10/codex-models.json
+        dest: '{{ ansible_facts.user_dir }}/.config/ds4/codex-models.json'
+        mode: '0664'
+      notify: Restart DS4
+
+    - name: Install the LAN inference service
+      ansible.builtin.copy:
+        src: gx10/user-units/ds4-server.service
+        dest: '{{ ansible_facts.user_dir }}/.config/systemd/user/ds4-server.service'
+        mode: '0644'
+      notify: Restart DS4
+
+    # Apply changed definitions before ensuring the service is enabled, so a
+    # first installation loads the model only once.
+    - name: Apply changed DS4 configuration
+      ansible.builtin.meta: flush_handlers
+
+    - name: Enable and start DS4
+      ansible.builtin.systemd_service:
+        name: ds4-server.service
+        scope: user
+        enabled: true
+        state: started
+      environment:
+        XDG_RUNTIME_DIR: '/run/user/{{ ansible_facts.user_uid }}'
+      when: not ansible_check_mode or gx10_ds4_existing_unit.stat.exists
+
+    - name: Verify the model API after reconciliation
+      ansible.builtin.uri:
+        url: http://127.0.0.1:8000/v1/models
+        use_proxy: false
+        return_content: true
+        timeout: 5
+      register: gx10_ds4_api
+      until: gx10_ds4_api.status == 200
+      retries: 10
+      delay: 2
+      when: not ansible_check_mode
+
+    - name: Verify that DS4 advertises the expected model
+      ansible.builtin.assert:
+        that:
+          - "'deepseek-v4-flash' in (gx10_ds4_api.json.data | map(attribute='id') | list)"
+      when: not ansible_check_mode
+
+  handlers:
+    - name: Restart DS4
+      ansible.builtin.systemd_service:
+        name: ds4-server.service
+        scope: user
+        daemon_reload: true
+        state: restarted
+      environment:
+        XDG_RUNTIME_DIR: '/run/user/{{ ansible_facts.user_uid }}'
+      when: not ansible_check_mode or gx10_ds4_existing_unit.stat.exists
