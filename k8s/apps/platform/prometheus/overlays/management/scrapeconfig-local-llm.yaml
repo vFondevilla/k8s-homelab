@@ -1,0 +1,23 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: local-llm
+  namespace: prom
+  labels:
+    release: kube-prometheus-stack
+spec:
+  jobName: local-llm
+  scrapeInterval: 30s
+  metricsPath: /metrics
+  staticConfigs:
+    - targets:
+        - llm01.fondevilla.io:8731
+      labels:
+        served_model: local/Qwen3.8-Flash-Next
+        instance: llm01
+    - targets:
+        # Cluster DNS still points gx10.fondevilla.io at 10.1.0.112.
+        - 10.1.1.230:8000
+      labels:
+        served_model: deepseek-v4-flash
+        instance: gx10
