@@ -1,0 +1,11 @@
+name: ARC personal repository smoke
+on:
+  workflow_dispatch:
+jobs:
+  smoke:
+    runs-on: vf-${{ github.repository_id }}
+    steps:
+      - name: Confirm personal repository runner
+        run: |
+          echo "Repository: $GITHUB_REPOSITORY"
+          echo "Runner: $RUNNER_NAME"
