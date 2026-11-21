@@ -1,0 +1,148 @@
+---
+- name: Reconcile observed llm01 host configuration
+  hosts: llm_servers
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Require the observed operating system and existing account
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.distribution == 'Fedora'
+          - ansible_facts.distribution_major_version == '43'
+          - ansible_user == 'victor'
+
+    - name: Install runtime and administration packages
+      ansible.builtin.dnf:
+        name: '{{ llm01_packages }}'
+        state: present
+
+    - name: Preserve timezone
+      ansible.builtin.file:
+        src: ../usr/share/zoneinfo/Europe/Madrid
+        dest: /etc/localtime
+        state: link
+        force: true
+
+    - name: Keep sleep targets masked
+      ansible.builtin.systemd_service:
+        name: '{{ item }}'
+        masked: true
+      loop: [sleep.target, suspend.target, hibernate.target, hybrid-sleep.target]
+
+    - name: Read boot target
+      ansible.builtin.command: systemctl get-default
+      register: boot_target
+      changed_when: false
+      check_mode: false
+
+    - name: Preserve console boot
+      ansible.builtin.command: systemctl set-default multi-user.target
+      when: boot_target.stdout != 'multi-user.target'
+      changed_when: true
+
+    - name: Read configured kernel arguments
+      ansible.builtin.command: grubby --info=DEFAULT
+      register: kernel_config
+      changed_when: false
+      check_mode: false
+
+    - name: Preserve AMD memory tuning in installed boot entries
+      ansible.builtin.command:
+        argv:
+          - grubby
+          - --update-kernel=ALL
+          - '--args={{ llm01_kernel_args | join(" ") }}'
+      when: llm01_kernel_args | difference(kernel_config.stdout | replace('"', '') | split) | length > 0
+      changed_when: true
+
+    - name: Preserve arguments for future kernel installations
+      ansible.builtin.lineinfile:
+        path: /etc/default/grub
+        regexp: '^GRUB_CMDLINE_LINUX='
+        line: 'GRUB_CMDLINE_LINUX="rhgb quiet {{ llm01_kernel_args | join(" ") }}"'
+
+    - name: Enable SSH and firewall
+      ansible.builtin.systemd_service:
+        name: '{{ item }}'
+        enabled: true
+        state: started
+      loop: [sshd, firewalld]
+
+    - name: Inspect lingering
+      ansible.builtin.stat:
+        path: /var/lib/systemd/linger/victor
+      register: linger
+
+    - name: Enable persistent user services
+      ansible.builtin.command: loginctl enable-linger victor
+      when: not linger.stat.exists
+      changed_when: true
+
+- name: Restore victor user service definitions
+  hosts: llm_servers
+  become: false
+  gather_facts: false
+  environment:
+    XDG_RUNTIME_DIR: /run/user/1000
+  tasks:
+    - name: Create service and model directories
+      ansible.builtin.file:
+        path: '{{ item }}'
+        state: directory
+        mode: '0755'
+      loop:
+        - /home/victor/.config/systemd/user
+        - /home/victor/halogen-models
+
+    - name: Install observed Halogen launcher
+      ansible.builtin.copy:
+        src: llm01/run_halogen_server.sh
+        dest: /home/victor/run_halogen_server.sh
+        mode: '0755'
+      notify: Restart Halogen
+
+    - name: Install observed service definitions
+      ansible.builtin.copy:
+        src: '{{ item }}'
+        dest: '/home/victor/.config/systemd/user/{{ item | basename }}'
+        mode: '0644'
+      with_fileglob:
+        - files/llm01/user-units/*
+      register: user_units
+
+    - name: Reload changed user definitions
+      ansible.builtin.systemd_service:
+        scope: user
+        daemon_reload: true
+      when: user_units.changed
+
+    - name: Restart Halogen when its definition changes
+      ansible.builtin.debug:
+        msg: Halogen unit changed
+      changed_when: true
+      when: user_units.results | selectattr('changed') | selectattr('dest', 'defined') | selectattr('dest', 'search', 'halogen-server.service$') | list | length > 0
+      notify: Restart Halogen
+
+    - name: Preserve inactive auxiliary services
+      ansible.builtin.systemd_service:
+        name: '{{ item }}'
+        scope: user
+        enabled: false
+        state: stopped
+      loop:
+        - livesync-cli.service
+        - real-estate-monitor-web.service
+
+    - name: Enable Halogen
+      ansible.builtin.systemd_service:
+        name: halogen-server.service
+        scope: user
+        enabled: true
+        state: started
+
+  handlers:
+    - name: Restart Halogen
+      ansible.builtin.systemd_service:
+        name: halogen-server.service
+        scope: user
+        state: restarted
