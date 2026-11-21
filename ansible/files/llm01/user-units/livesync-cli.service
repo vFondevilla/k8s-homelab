@@ -1,0 +1,18 @@
+[Unit]
+Description=Self-hosted LiveSync CLI daemon for Obsidian vault
+Documentation=https://github.com/vrtmrz/obsidian-livesync
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/victor/obsidian-vault
+ExecStart=/home/victor/.local/bin/livesync-cli /home/victor/obsidian-vault --settings /home/victor/obsidian-vault/data.json daemon
+Restart=on-failure
+RestartSec=15s
+TimeoutStopSec=30s
+KillSignal=SIGINT
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=default.target
