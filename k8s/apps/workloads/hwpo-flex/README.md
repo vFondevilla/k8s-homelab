@@ -92,18 +92,23 @@ actually assigned.
 1. A trusted supervisor owns runner registration for the publisher scale set. Each runner
    accepts exactly one job, provides an ephemeral Docker daemon per run, and is destroyed
    afterward. There is no persistent shared daemon.
-2. When the supervisor assigns a job to a runner, it records the runner identity and the
-   assigned job. Before it starts any job step, it fetches that job's metadata from GitHub
-   through the Actions API, authenticated with the supervisor's own credential, never the
-   job token. It requires all of the following:
-   - `repository.full_name` is `vFondevilla/k8s-homelab`
-   - the workflow path is `.github/workflows/hwpo-flex-image.yml`
-   - the run's `head_branch` is `main` and the run's `event` is `workflow_dispatch` or
-     `repository_dispatch`
-   - the job's assigned runner name matches the single-use runner identity the supervisor
-     launched
-   On any mismatch or API failure, the supervisor destroys the runner and the job never
-   runs.
+2. A trusted supervisor integrated with the runner listener inspects the authenticated job
+   assignment from GitHub before it allows any job step or Zot egress, from two separate
+   sources. The supervisor checks the receiving listener session's authenticated
+   registration against the single-use runner it launched. From the `github` context in
+   the authenticated job assignment (`AgentJobRequestMessage.ContextData`), upstream of
+   user-controlled step environment, it checks the repository, `workflow_ref`, `ref` and
+   `event_name`. It requires all of the following and denies on any missing value or
+   mismatch:
+   - the repository matches `vFondevilla/k8s-homelab`
+   - `github.workflow_ref` is exactly
+     `vFondevilla/k8s-homelab/.github/workflows/hwpo-flex-image.yml@refs/heads/main`
+   - `github.ref` is exactly `refs/heads/main`; the webhook or REST short name `main`
+     also matches a tag and is insufficient
+   - `github.event_name` is `workflow_dispatch` or `repository_dispatch`
+   The supervisor must not log or forward the full job message, which contains secrets.
+   Such a trusted listener integration is an external supervisor example; stock Actions
+   Runner Controller is not claimed to provide this functionality.
 3. Network policy denies all egress from runner workloads by default. The supervisor opens
    egress to `zot.apps.fondevilla.io` only for an admitted job. Private registry credentials
    are reachable only inside an admitted run.
@@ -116,6 +121,9 @@ Official references:
   <https://docs.github.com/en/webhooks/webhook-events-and-payloads#workflow_job>
 - Actions API, "Get a job for a workflow run":
   <https://docs.github.com/en/rest/actions/workflow-jobs#get-a-job-for-a-workflow-run>
+- Runner source: `AgentJobRequestMessage.ContextData` carries the trusted `github`
+  context, copied before user step environment:
+  <https://github.com/actions/runner/blob/main/src/Sdk/DTPipelines/Pipelines/AgentJobRequestMessage.cs>
 - Runner groups are an organization and enterprise feature:
   <https://docs.github.com/en/rest/actions/self-hosted-runner-groups>
 
