@@ -8,6 +8,7 @@ HALOGEN_MODELS_DIR="${HALOGEN_MODELS_DIR:-${HOME:?HOME must be set}/halogen-mode
 HALOGEN_PORT="${HALOGEN_PORT:-8731}"
 HALOGEN_CONTAINER_NAME="${HALOGEN_CONTAINER_NAME:-halogen-server}"
 HALOGEN_STOP_TIMEOUT="${HALOGEN_STOP_TIMEOUT:-60}"
+HALOGEN_ENV_FILE="${HALOGEN_ENV_FILE:-${HOME:?HOME must be set}/.config/halogen/server.env}"
 
 die() {
     printf 'Error: %s\n' "$*" >&2
@@ -45,6 +46,13 @@ HALOGEN_MODELS_DIR="$(cd -- "$HALOGEN_MODELS_DIR" && pwd -P)"
 [[ -w "$HALOGEN_MODELS_DIR" ]] || die "Model directory is not writable: $HALOGEN_MODELS_DIR"
 [[ "$HALOGEN_MODELS_DIR" != *:* ]] || die 'The model directory path cannot contain a colon.'
 
+# Keep engine tuning outside this launcher. A missing file preserves image defaults.
+HALOGEN_ENV_ARGS=()
+if [[ -e "$HALOGEN_ENV_FILE" ]]; then
+    [[ -f "$HALOGEN_ENV_FILE" && -r "$HALOGEN_ENV_FILE" ]] || die "Cannot read configuration: $HALOGEN_ENV_FILE"
+    HALOGEN_ENV_ARGS=(--env-file "$HALOGEN_ENV_FILE")
+fi
+
 # Complete startup checks before stopping the current server. Podman waits for
 # shutdown and sends SIGKILL only if the graceful shutdown timeout expires.
 if [[ "$ACTION" == restart ]]; then
@@ -65,6 +73,7 @@ exec podman run --rm \
     --group-add keep-groups \
     --ipc=host \
     --ulimit memlock=-1:-1 \
+    "${HALOGEN_ENV_ARGS[@]}" \
     --env "HALOGEN_DOWNLOAD=${HALOGEN_DOWNLOAD}" \
     --volume "${HALOGEN_MODELS_DIR}:/models" \
     "$HALOGEN_IMAGE"
