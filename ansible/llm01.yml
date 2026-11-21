@@ -94,11 +94,30 @@
         - /home/victor/.config/systemd/user
         - /home/victor/halogen-models
 
-    - name: Install observed Halogen launcher
+    - name: Create private Halogen configuration and persistent cache directories
+      ansible.builtin.file:
+        path: '{{ item }}'
+        state: directory
+        mode: '0700'
+      loop:
+        - /home/victor/.config/halogen
+        - /home/victor/halogen-models/.halogen-cache
+
+    - name: Install the interactive inference settings
+      ansible.builtin.copy:
+        src: llm01/server.env
+        dest: /home/victor/.config/halogen/server.env
+        mode: '0600'
+        backup: true
+      notify: Restart Halogen
+
+    - name: Install the Halogen launcher with configuration file support
       ansible.builtin.copy:
         src: llm01/run_halogen_server.sh
         dest: /home/victor/run_halogen_server.sh
         mode: '0755'
+        backup: true
+        validate: /usr/bin/bash -n %s
       notify: Restart Halogen
 
     - name: Install observed service definitions
@@ -141,8 +160,42 @@
         state: started
 
   handlers:
-    - name: Restart Halogen
+    - name: Wait until no Halogen requests are running or queued
+      listen: Restart Halogen
+      ansible.builtin.uri:
+        url: http://127.0.0.1:8731/health
+        return_content: true
+        timeout: 10
+      register: llm01_idle
+      until: >-
+        llm01_idle.status == 200
+        and llm01_idle.json.status == 'ok'
+        and not llm01_idle.json.busy
+        and llm01_idle.json.in_flight == 0
+        and llm01_idle.json.queued == 0
+      retries: 60
+      delay: 2
+
+    - name: Restart the Halogen user service
+      listen: Restart Halogen
       ansible.builtin.systemd_service:
         name: halogen-server.service
         scope: user
         state: restarted
+
+    - name: Wait for the tuned model and API to be ready
+      listen: Restart Halogen
+      ansible.builtin.uri:
+        url: http://127.0.0.1:8731/health
+        return_content: true
+        timeout: 10
+      register: llm01_ready
+      until: >-
+        llm01_ready.status == 200
+        and llm01_ready.json.status == 'ok'
+        and llm01_ready.json.engine.responds
+        and llm01_ready.json.version.match
+        and llm01_ready.json.kv_pool_positions == 262144
+        and llm01_ready.json.reasoning_effort_default == 'medium'
+      retries: 120
+      delay: 2
