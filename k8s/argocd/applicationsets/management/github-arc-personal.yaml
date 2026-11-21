@@ -1,0 +1,82 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: github-arc-vfondevilla
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: [missingkey=error]
+  syncPolicy:
+    applicationsSync: sync
+    preserveResourcesOnDeletion: false
+  generators:
+    - plugin:
+        configMapRef:
+          name: arc-personal-repositories
+        requeueAfterSeconds: 300
+  template:
+    metadata:
+      name: 'vf-{{.repoID}}'
+    spec:
+      project: default
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: arc-runners-vfondevilla
+      source:
+        repoURL: oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set
+        targetRevision: 0.15.1
+        path: .
+        helm:
+          releaseName: 'vf-{{.repoID}}'
+          valuesObject:
+            githubConfigUrl: 'https://github.com/{{.repoName}}'
+            githubConfigSecret: arc-vfondevilla-app
+            runnerScaleSetName: 'vf-{{.repoID}}'
+            runnerGroup: Default
+            minRunners: 0
+            maxRunners: 3
+            controllerServiceAccount:
+              namespace: arc-system
+              name: arc-controller
+            template:
+              metadata:
+                labels:
+                  arc-runner-egress: public-ci
+              spec:
+                serviceAccountName: arc-runner
+                automountServiceAccountToken: false
+                securityContext:
+                  runAsNonRoot: true
+                  runAsUser: 1001
+                  runAsGroup: 1001
+                  seccompProfile:
+                    type: RuntimeDefault
+                containers:
+                  - name: runner
+                    image: ghcr.io/actions/actions-runner:2.338.2
+                    command: ["/home/runner/run.sh"]
+                    securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                        drop: [ALL]
+            listenerTemplate:
+              spec:
+                securityContext:
+                  runAsNonRoot: true
+                  runAsUser: 1001
+                  runAsGroup: 1001
+                  seccompProfile:
+                    type: RuntimeDefault
+                containers:
+                  - name: listener
+                    securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                        drop: [ALL]
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true

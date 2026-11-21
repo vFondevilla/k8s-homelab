@@ -60,6 +60,7 @@ spec:
                 - path: k8s/apps/workloads/hindsight/overlays/management
                 - path: k8s/apps/workloads/hermes-agent/overlays/management
                 - path: k8s/apps/platform/multus/overlays/management
+                - path: k8s/apps/platform/github-arc/overlays/management
   template:
     metadata:
       name: '{{.name}}-{{ if or (eq (index (splitList "/" .path.path) 2) "platform") (eq (index (splitList "/" .path.path) 2) "workloads") }}{{ index (splitList "/" .path.path) 3 }}{{ else }}{{ index (splitList "/" .path.path) 2 }}{{ end }}'

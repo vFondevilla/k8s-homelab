@@ -1,0 +1,11 @@
+serviceAccount:
+  create: true
+  name: arc-controller
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: [ALL]

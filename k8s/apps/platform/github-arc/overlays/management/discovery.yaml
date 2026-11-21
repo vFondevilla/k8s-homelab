@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: arc-personal-repositories
+  namespace: argocd
+data:
+  token: "$arc-discovery-plugin:plugin.arc-personal.token"
+  baseUrl: "http://arc-personal-discovery.arc-discovery.svc.cluster.local:4355"
+  requestTimeout: "30"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: arc-personal-discovery
+  namespace: arc-discovery
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: arc-personal-discovery }
+  template:
+    metadata:
+      labels: { app: arc-personal-discovery }
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: discovery
+          image: python:3.13.2-slim-bookworm
+          command: [python, -I, /app/server.py]
+          ports: [{ name: http, containerPort: 4355 }]
+          resources:
+            requests: { cpu: 20m, memory: 48Mi }
+            limits: { cpu: 200m, memory: 128Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+          volumeMounts:
+            - { name: code, mountPath: /app, readOnly: true }
+            - { name: app-credentials, mountPath: /var/run/github, readOnly: true }
+            - { name: plugin-token, mountPath: /var/run/plugin-token, readOnly: true }
+      volumes:
+        - name: code
+          configMap: { name: arc-personal-discovery-code, defaultMode: 0444 }
+        - name: app-credentials
+          secret: { secretName: arc-vfondevilla-discovery-app, defaultMode: 0440 }
+        - name: plugin-token
+          secret: { secretName: arc-discovery-plugin, defaultMode: 0440 }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: arc-personal-discovery
+  namespace: arc-discovery
+spec:
+  selector: { app: arc-personal-discovery }
+  ports: [{ name: http, port: 4355, targetPort: http }]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: arc-personal-discovery
+  namespace: arc-discovery
+spec:
+  podSelector: { matchLabels: { app: arc-personal-discovery } }
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels: { kubernetes.io/metadata.name: argocd }
+          podSelector:
+            matchLabels: { app.kubernetes.io/name: argocd-applicationset-controller }
+      ports: [{ protocol: TCP, port: 4355 }]
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels: { kubernetes.io/metadata.name: kube-system }
+          podSelector:
+            matchLabels: { k8s-app: kube-dns }
+      ports: [{ protocol: UDP, port: 53 }, { protocol: TCP, port: 53 }]
+    - to:
+        - ipBlock: { cidr: 0.0.0.0/0, except: [10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 127.0.0.0/8, 169.254.0.0/16, 100.64.0.0/10] }
+        - ipBlock: { cidr: 2000::/3, except: [2001:db8::/32] }
+      ports: [{ protocol: TCP, port: 443 }]
