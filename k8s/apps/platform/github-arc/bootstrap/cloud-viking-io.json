@@ -1,0 +1,9 @@
+{
+  "name": "cloud-viking-io-arc",
+  "url": "https://github.com/cloud-viking-io",
+  "description": "Ephemeral GitHub Actions runners in the homelab",
+  "public": false,
+  "hook_attributes": {"url": "https://example.invalid/unused", "active": false},
+  "default_permissions": {"organization_self_hosted_runners": "write", "metadata": "read"},
+  "default_events": []
+}

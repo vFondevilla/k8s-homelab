@@ -1,0 +1,9 @@
+{
+  "name": "vfondevilla-arc",
+  "url": "https://github.com/vFondevilla",
+  "description": "Ephemeral GitHub Actions runners for personal repositories",
+  "public": false,
+  "hook_attributes": {"url": "https://example.invalid/unused", "active": false},
+  "default_permissions": {"administration": "write", "metadata": "read"},
+  "default_events": []
+}

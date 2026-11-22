@@ -4,6 +4,72 @@ The management overlay installs ARC controller and scale-set charts at `0.15.1` 
 
 ## GitHub setup
 
+### Bootstrap from manifests
+
+The bootstrap tool uses the [GitHub App manifest flow](https://docs.github.com/en/apps/sharing-github-apps/registering-a-github-app-from-a-manifest).
+The two manifests are in `bootstrap/` beside this README. They disable webhooks and request only the ARC permissions below.
+The tool requires Python 3, an authenticated 1Password CLI, and a browser on the same machine.
+The default vault is `Lab`. This must be the vault exposed as `lab` through the cluster's 1Password Connect.
+
+From the repository root, run:
+
+```sh
+python3 scripts/bootstrap-github-arc.py cloud-viking-io
+```
+
+1. Open the local URL that the tool prints.
+2. Select **Create App on GitHub**.
+3. Review the permissions and create the App in `cloud-viking-io`.
+4. Wait for the callback page to report that credentials are saved.
+5. Follow the installation link and install the App in `cloud-viking-io`.
+6. Run the command below to discover and save the installation ID through the GitHub API.
+
+```sh
+python3 scripts/bootstrap-github-arc.py cloud-viking-io --discover-installation
+python3 scripts/bootstrap-github-arc.py vFondevilla
+```
+
+Repeat the browser steps for `vFondevilla`. Install the personal App with **All repositories** selected.
+Save its installation ID and create the discovery token:
+
+```sh
+python3 scripts/bootstrap-github-arc.py vFondevilla --discover-installation
+python3 scripts/bootstrap-github-arc.py plugin-token
+python3 scripts/bootstrap-github-arc.py cloud-viking-io --ensure-runner-group
+```
+
+Use `--vault NAME` on every command to select another vault.
+Installation discovery requires OpenSSL. It signs App requests with a key passed through an anonymous pipe.
+Use `--installation-id ID` to supply an installation ID explicitly. The tool checks it against GitHub before saving.
+If an App name is already taken, use `--name UNIQUE-NAME` during creation.
+Existing App credentials and plugin tokens are retained on subsequent runs.
+The tool rejects duplicate item titles and conflicting installation IDs.
+It stores secrets through standard input to the [1Password CLI](https://developer.1password.com/docs/cli/reference/management-commands/item/).
+It does not print private keys or save them to files.
+If a vault write fails after creation, keep the process open and follow its retry instructions.
+If the process stops before saving, recover the App through GitHub settings and generate a replacement private key.
+Do not create another App before checking GitHub and 1Password.
+
+The runner group command uses the App credentials and creates `cloud-viking-io` with private repository access.
+Existing runner groups retain their access settings. External Secrets retries failed synchronization automatically.
+To request an immediate refresh after all fields are saved, run:
+
+```sh
+kubectl --context homelab -n arc-runners-cloud-viking annotate externalsecret arc-cloud-viking-io-app force-sync="$(date +%s)" --overwrite
+kubectl --context homelab -n arc-runners-vfondevilla annotate externalsecret arc-vfondevilla-app force-sync="$(date +%s)" --overwrite
+kubectl --context homelab -n arc-discovery annotate externalsecret arc-vfondevilla-discovery-app arc-discovery-plugin force-sync="$(date +%s)" --overwrite
+kubectl --context homelab -n argocd annotate externalsecret arc-discovery-plugin force-sync="$(date +%s)" --overwrite
+kubectl --context homelab get externalsecrets -A
+```
+
+Check that all five ARC ExternalSecrets report Ready. Then follow the smoke verification steps below.
+The management Argo tree includes `github-arc-personal.yaml`, which creates the personal repository ApplicationSet.
+The bootstrap tool does not apply that configuration to the cluster.
+The management ApplicationSet enables server-side diff for the ARC application.
+This accounts for ExternalSecret defaults added by Kubernetes during comparison.
+
+### App permissions and credentials
+
 Create two GitHub Apps and store credentials in 1Password. Install the `cloud-viking-io` app in that organization. Install the `vFondevilla` app on the personal account with **all repositories** selected. Discovery verifies the installation account is the `vFondevilla` user and that its numeric account ID is present. Selected-repository installations are rejected because the requested coverage is every personal repository. Installations must include metadata for each repository.
 
 The organization app needs organization self-hosted runner administration read/write and metadata read-only. The personal app needs repository administration read/write and metadata read-only. Do not grant contents, workflows, or Actions administration permissions. ARC needs runner administration to create ephemeral runners; the runner pods receive no GitHub App credentials and no Kubernetes API token.

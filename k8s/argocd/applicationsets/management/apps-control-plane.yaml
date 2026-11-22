@@ -84,6 +84,11 @@ spec:
           - CreateNamespace=true
           - ServerSideApply=true
   templatePatch: |
+    {{- if eq .path.path "k8s/apps/platform/github-arc/overlays/management" }}
+    metadata:
+      annotations:
+        argocd.argoproj.io/compare-options: ServerSideDiff=true
+    {{- end }}
     {{- if or (eq .path.path "k8s/apps/workloads/hermes-agent/overlays/management") (eq .path.path "k8s/apps/workloads/codex-agent/overlays/management") }}
     spec:
       syncPolicy:
