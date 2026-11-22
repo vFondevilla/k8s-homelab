@@ -46,6 +46,11 @@ tasks:
     cmds:
       - ansible-playbook -i inventory.yml gx10.yml --tags tailscale
 
+  strix-halo:
+    desc: Configure a Fedora 43 Strix Halo workstation (no automatic reboot)
+    cmds:
+      - ansible-playbook -i inventory.yml strix-halo.yml
+
   github-ssh-keys:
     desc: Install victor's GitHub SSH keys into authorized_keys
     cmds:
