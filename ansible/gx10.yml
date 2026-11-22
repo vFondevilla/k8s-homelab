@@ -1,0 +1,130 @@
+---
+- name: Configure NVIDIA DGX Spark (gx10)
+  hosts: gx10
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Fetch SSH keys from GitHub and add to authorized_keys
+      ansible.posix.authorized_key:
+        user: victor
+        state: present
+        key: https://github.com/vFondevilla.keys
+      tags: [ssh, provisioning]
+
+    - name: Ensure tailscaled service is enabled and started
+      ansible.builtin.systemd:
+        name: tailscaled
+        state: started
+        enabled: true
+      tags: [tailscale, provisioning]
+
+    - name: Fetch Tailscale OAuth client ID from 1Password
+      ansible.builtin.set_fact:
+        ts_oauth_client_id: "{{ lookup('community.general.onepassword', 'Tailscale OAuth (homelab)', field='username', vault='Lab') }}"
+      no_log: true
+      tags: [tailscale]
+
+    - name: Fetch Tailscale OAuth client secret from 1Password
+      ansible.builtin.set_fact:
+        ts_oauth_client_secret: "{{ lookup('community.general.onepassword', 'Tailscale OAuth (homelab)', field='credential', vault='Lab') }}"
+      no_log: true
+      tags: [tailscale]
+
+    - name: Exchange OAuth credentials for Tailscale API access token
+      ansible.builtin.uri:
+        url: https://api.tailscale.com/api/v2/oauth/token
+        method: POST
+        body_format: form-urlencoded
+        body:
+          grant_type: client_credentials
+          client_id: "{{ ts_oauth_client_id }}"
+          client_secret: "{{ ts_oauth_client_secret }}"
+        status_code: [200]
+      register: ts_token_resp
+      delegate_to: localhost
+      no_log: true
+      tags: [tailscale]
+
+    - name: Check current Tailscale backend state
+      ansible.builtin.command: tailscale status --json
+      register: ts_status
+      changed_when: false
+      failed_when: false
+      tags: [tailscale]
+
+    - name: Set Tailscale backend state fact
+      ansible.builtin.set_fact:
+        ts_backend_state: "{{ (ts_status.stdout | default('{}') | from_json).BackendState | default('') }}"
+      tags: [tailscale]
+
+    - name: Authenticate Tailscale (only when not connected)
+      block:
+        - name: Mint ephemeral auth key via Tailscale API
+          ansible.builtin.uri:
+            url: https://api.tailscale.com/api/v2/tailnet/-/keys
+            method: POST
+            headers:
+              Authorization: "Bearer {{ ts_token_resp.json.access_token }}"
+            body_format: json
+            body:
+              capabilities:
+                devices:
+                  create:
+                    reusable: false
+                    ephemeral: false
+                    preauthorized: true
+                    tags:
+                      - "tag:gx10"
+              expirySeconds: 300
+            status_code: [200]
+          register: ts_key_resp
+          delegate_to: localhost
+          no_log: true
+
+        - name: Bring Tailscale up with minted auth key
+          ansible.builtin.command: >
+            tailscale up
+            --auth-key={{ ts_key_resp.json.key }}
+            --advertise-tags=tag:gx10
+            --hostname=gx10
+            --accept-dns
+          no_log: true
+      when: ts_backend_state != 'Running'
+      tags: [tailscale]
+
+    - name: Re-query Tailscale status after potential authentication
+      ansible.builtin.command: tailscale status --json
+      register: ts_status_after
+      changed_when: false
+      tags: [tailscale]
+
+    - name: Set device ID from Tailscale status
+      ansible.builtin.set_fact:
+        ts_device_id: "{{ (ts_status_after.stdout | from_json).Self.ID | default('') }}"
+      tags: [tailscale]
+
+    - name: Disable key expiry on gx10 device
+      ansible.builtin.uri:
+        url: "https://api.tailscale.com/api/v2/device/{{ ts_device_id }}/key"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ ts_token_resp.json.access_token }}"
+        body_format: json
+        body:
+          keyExpiryDisabled: true
+        status_code: [200]
+      delegate_to: localhost
+      no_log: true
+      when: ts_device_id | length > 0
+      tags: [tailscale]
+
+    - name: Display Tailscale configuration summary
+      ansible.builtin.debug:
+        msg:
+          - "gx10 Tailscale configuration complete"
+          - "  Backend state: {{ (ts_status_after.stdout | from_json).BackendState }}"
+          - "  Hostname:      {{ (ts_status_after.stdout | from_json).Self.HostName }}"
+          - "  Tailscale IPs: {{ (ts_status_after.stdout | from_json).Self.TailscaleIPs | join(', ') }}"
+          - "  Device ID:     {{ ts_device_id }}"
+          - "  Key expiry:    disabled"
+      tags: [tailscale]
