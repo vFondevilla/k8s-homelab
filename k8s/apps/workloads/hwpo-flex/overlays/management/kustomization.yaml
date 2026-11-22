@@ -7,10 +7,8 @@ resources:
   - ../../base
 
 images:
-  # The repository has no existing hwpo-flex image reference. The Harbor
-  # internal-image convention is used here; replace the repository/tag with
-  # the application's published image and immutable commit SHA before deploy.
+  # Pin the immutable application commit published by the image workflow.
   - name: hwpo-flex
     newName: zot.apps.fondevilla.io/hwpo-flex
-    newTag: d8580645eafaa164991383c0ce195d4dc098e481
+    newTag: f7e142a083b7c2783adc4d221b09b6f4bb9a553c
 

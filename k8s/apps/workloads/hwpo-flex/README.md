@@ -12,7 +12,7 @@ The overlay creates resources in the `hwpo-flex` namespace.
 
 ## Image
 
-The management overlay pins `zot.apps.fondevilla.io/hwpo-flex:d8580645eafaa164991383c0ce195d4dc098e481`.
+The management overlay pins `zot.apps.fondevilla.io/hwpo-flex:f7e142a083b7c2783adc4d221b09b6f4bb9a553c`.
 
 The `Build hwpo-flex image` workflow (`.github/workflows/hwpo-flex-image.yml`) builds the
 application image for `linux/amd64` and pushes only the full application commit SHA tag. The
