@@ -158,6 +158,15 @@ Check the affected `AutoscalingListener` and its same-named Pod in `arc-system`;
 
 ARC runner images are pinned to `2.338.2`. Review and update this version monthly, or sooner when GitHub publishes a security update. Both organization and personal runner templates must be updated together.
 
+The shared organization scale set accepts `cloud-viking-io` and the `hwpo-flex-publisher` label.
+Organization jobs receive an ephemeral Docker-in-Docker sidecar and a shared Unix socket.
+Docker storage and the work directory use per-pod `emptyDir` volumes.
+The organization runner namespace permits the privileged Docker sidecar; personal runner pods retain their existing security settings.
+Only organization runners have additional Zot egress: HTTPS at `10.253.0.131` and the Zot backend pods on port 5000.
+The backend rule permits Cilium's ingress proxy to forward the HTTPS request after TLS termination.
+Update `zot-egress-policy.yaml` if the registry ingress address changes.
+The `hwpo-sniffer` image workflow can select the shared scale set through `HWPO_FLEX_IMAGE_RUNNER_LABELS=["cloud-viking-io"]`.
+
 With zero idle runners, the controller, discovery service, and scale-set controllers stay running; runner pods are created only for jobs. At the configured caps, the cluster can run five organization jobs plus three jobs for every installed personal repository. Review node CPU/memory capacity and GPU requirements before installing the personal App on all repositories.
 
 ## Smoke verification
@@ -180,7 +189,7 @@ With zero idle runners, the controller, discovery service, and scale-set control
              echo "Repository: $GITHUB_REPOSITORY"
              echo "Runner: $RUNNER_NAME"
    ```
-5. From an authorized disposable runner job, verify DNS and public HTTPS work while connections to cluster/service/private/link-local/metadata addresses fail.
+5. From an authorized disposable runner job, verify DNS and public HTTPS work while connections to cluster/service/private/link-local/metadata addresses fail. Organization runners also permit Zot HTTPS at `10.253.0.131`; verify Docker builds and registry access there.
 6. To smoke-test prune and re-enroll behavior without changing the all-repositories installation, use a disposable personal repository. Archive it and wait for discovery to prune its Argo Application. If ARC needs restored authorization or the repository unarchived to finish cleanup, follow the temporary selector hold sequence above and remove the selector only after cleanup is verified. For permanent individual decommissioning, archive the repository while it remains authorized, diagnose any Terminating scale set, and follow the same hold sequence if cleanup requires restoring authorization. Do not revoke or deselect the repository for this test.
 
 Run the repository discovery checks with `python3 -m unittest discover -s k8s/apps/platform/github-arc/overlays/management/tests -v`.

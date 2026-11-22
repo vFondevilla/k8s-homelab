@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: runner-zot-egress
+  namespace: arc-runners-cloud-viking
+spec:
+  podSelector:
+    matchLabels:
+      arc-runner-egress: public-ci
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 10.253.0.131/32
+      ports:
+        - { protocol: TCP, port: 443 }
+    # Cilium's ingress proxy also evaluates the originating pod's egress
+    # policy against the registry backend after terminating HTTPS.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: zot
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: zot
+              app.kubernetes.io/name: zot
+      ports:
+        - { protocol: TCP, port: 5000 }

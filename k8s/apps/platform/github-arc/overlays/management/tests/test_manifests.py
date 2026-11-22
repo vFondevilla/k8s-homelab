@@ -120,6 +120,37 @@ class ManifestRegressionTests(unittest.TestCase):
         self.assertEqual(values["runnerGroup"], "Default")
         self.assertIn("{{.repoName}}", values["githubConfigUrl"])
 
+    def test_org_docker_daemon_is_ephemeral_and_runner_uses_shared_socket(self):
+        runner_set = self.find("AutoscalingRunnerSet", "cloud-viking-io")
+        self.assertIn("hwpo-flex-publisher", runner_set["spec"]["runnerScaleSetLabels"])
+        pod = runner_set["spec"]["template"]["spec"]
+        self.assertFalse(pod["automountServiceAccountToken"])
+        daemon = next(c for c in pod["initContainers"] if c["name"] == "dind")
+        self.assertEqual(daemon["restartPolicy"], "Always")
+        self.assertTrue(daemon["securityContext"]["privileged"])
+        self.assertFalse(daemon["securityContext"]["runAsNonRoot"])
+        self.assertEqual(daemon["securityContext"]["runAsUser"], 0)
+        self.assertNotIn("--host=tcp", " ".join(daemon["args"]))
+        runner = pod["containers"][0]
+        self.assertEqual(next(e["value"] for e in runner["env"] if e["name"] == "DOCKER_HOST"), "unix:///var/run/docker.sock")
+        for container in (runner, daemon):
+            self.assertEqual(next(v["mountPath"] for v in container["volumeMounts"] if v["name"] == "dind-sock"), "/var/run")
+        self.assertEqual(pod["securityContext"]["fsGroup"], 123)
+        self.assertTrue(all("emptyDir" in v and "hostPath" not in v for v in pod["volumes"]))
+
+    def test_zot_access_is_limited_to_organization_runners(self):
+        policy = self.find("NetworkPolicy", "runner-zot-egress")
+        self.assertEqual(policy["metadata"]["namespace"], "arc-runners-cloud-viking")
+        self.assertEqual(policy["spec"]["egress"], [
+            {"to": [{"ipBlock": {"cidr": "10.253.0.131/32"}}], "ports": [{"protocol": "TCP", "port": 443}]},
+            {"to": [{"namespaceSelector": {"matchLabels": {"kubernetes.io/metadata.name": "zot"}},
+                      "podSelector": {"matchLabels": {"app.kubernetes.io/instance": "zot", "app.kubernetes.io/name": "zot"}}}],
+             "ports": [{"protocol": "TCP", "port": 5000}]},
+        ])
+        namespaces = {x["metadata"]["name"]: x["metadata"].get("labels", {}) for x in self.resources if x.get("kind") == "Namespace"}
+        self.assertEqual(namespaces["arc-runners-cloud-viking"]["pod-security.kubernetes.io/enforce"], "privileged")
+        self.assertEqual(namespaces["arc-runners-vfondevilla"]["pod-security.kubernetes.io/enforce"], "baseline")
+
 
 if __name__ == "__main__":
     unittest.main()

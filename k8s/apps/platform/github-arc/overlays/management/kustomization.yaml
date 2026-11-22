@@ -7,6 +7,7 @@ resources:
   - plugin-external-secret.yaml
   - runner-external-secrets.yaml
   - egress-policy.yaml
+  - zot-egress-policy.yaml
 configMapGenerator:
   - name: arc-personal-discovery-code
     files:

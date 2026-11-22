@@ -1,6 +1,8 @@
 githubConfigUrl: https://github.com/cloud-viking-io
 githubConfigSecret: arc-cloud-viking-io-app
 runnerScaleSetName: cloud-viking-io
+scaleSetLabels:
+  - hwpo-flex-publisher
 runnerGroup: cloud-viking-io
 minRunners: 0
 maxRunners: 5
@@ -18,15 +20,65 @@ template:
       runAsNonRoot: true
       runAsUser: 1001
       runAsGroup: 1001
+      fsGroup: 123
       seccompProfile: { type: RuntimeDefault }
-    containers:
-      - name: runner
+    # Custom Docker-in-Docker template follows ARC's native sidecar layout.
+    initContainers:
+      - name: init-dind-externals
         image: ghcr.io/actions/actions-runner:2.338.2
-        command: ["/home/runner/run.sh"]
+        command: [cp, -r, /home/runner/externals/., /home/runner/tmpDir/]
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
             drop: [ALL]
+        volumeMounts:
+          - { name: dind-externals, mountPath: /home/runner/tmpDir }
+      - name: dind
+        image: docker:29.9.3-dind@sha256:7bf70dcb85c822e3fa6f2d332143e474b99147b9d7b39102b0cfe8b04a7dd61b
+        restartPolicy: Always
+        args: [dockerd, --host=unix:///var/run/docker.sock, --group=123]
+        env:
+          - { name: DOCKER_TLS_CERTDIR, value: "" }
+        securityContext:
+          privileged: true
+          runAsNonRoot: false
+          runAsUser: 0
+          runAsGroup: 0
+        startupProbe:
+          exec:
+            command: [docker, info]
+          failureThreshold: 24
+          periodSeconds: 5
+        resources:
+          requests: { cpu: 250m, memory: 512Mi }
+          limits: { cpu: "2", memory: 4Gi }
+        volumeMounts:
+          - { name: work, mountPath: /home/runner/_work }
+          - { name: dind-sock, mountPath: /var/run }
+          - { name: dind-externals, mountPath: /home/runner/externals }
+          - { name: dind-storage, mountPath: /var/lib/docker }
+    containers:
+      - name: runner
+        image: ghcr.io/actions/actions-runner:2.338.2
+        command: ["/home/runner/run.sh"]
+        env:
+          - { name: DOCKER_HOST, value: unix:///var/run/docker.sock }
+          - { name: RUNNER_WAIT_FOR_DOCKER_IN_SECONDS, value: "120" }
+        resources:
+          requests: { cpu: 100m, memory: 256Mi }
+          limits: { cpu: "2", memory: 2Gi }
+        volumeMounts:
+          - { name: work, mountPath: /home/runner/_work }
+          - { name: dind-sock, mountPath: /var/run }
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: [ALL]
+    volumes:
+      - { name: work, emptyDir: { sizeLimit: 10Gi } }
+      - { name: dind-sock, emptyDir: {} }
+      - { name: dind-externals, emptyDir: {} }
+      - { name: dind-storage, emptyDir: { sizeLimit: 20Gi } }
 listenerTemplate:
   spec:
     securityContext:

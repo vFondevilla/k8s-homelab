@@ -10,7 +10,8 @@ kind: Namespace
 metadata:
   name: arc-runners-cloud-viking
   labels:
-    pod-security.kubernetes.io/enforce: baseline
+    # The organization's ephemeral Docker daemon runs as a privileged sidecar.
+    pod-security.kubernetes.io/enforce: privileged
     pod-security.kubernetes.io/audit: restricted
     arc-runner-egress: public-ci
 ---
