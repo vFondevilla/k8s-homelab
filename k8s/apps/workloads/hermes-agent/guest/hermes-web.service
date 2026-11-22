@@ -1,0 +1,20 @@
+[Unit]
+Description=Hermes authenticated web dashboard and remote backend
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h
+Environment=HERMES_HOME=%h/.hermes
+EnvironmentFile=%h/.config/hermes-http/access.env
+ExecStart=%h/.local/bin/hermes serve --host 127.0.0.1 --port 9119 --skip-build
+Restart=on-failure
+RestartSec=10
+RestartPreventExitStatus=78
+UMask=0077
+NoNewPrivileges=true
+TimeoutStopSec=60
+
+[Install]
+WantedBy=default.target
