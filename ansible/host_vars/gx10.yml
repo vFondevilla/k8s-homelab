@@ -1,0 +1,4 @@
+---
+# Some resolvers still return the old 10.1.0.112 address for gx10.
+ansible_host: 10.1.1.230
+ansible_python_interpreter: /usr/bin/python3

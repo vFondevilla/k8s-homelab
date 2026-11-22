@@ -1,0 +1,42 @@
+githubConfigUrl: https://github.com/cloud-viking-io
+githubConfigSecret: arc-cloud-viking-io-app
+runnerScaleSetName: cloud-viking-io
+runnerGroup: cloud-viking-io
+minRunners: 0
+maxRunners: 5
+controllerServiceAccount:
+  namespace: arc-system
+  name: arc-controller
+template:
+  metadata:
+    labels:
+      arc-runner-egress: public-ci
+  spec:
+    serviceAccountName: arc-runner
+    automountServiceAccountToken: false
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1001
+      runAsGroup: 1001
+      seccompProfile: { type: RuntimeDefault }
+    containers:
+      - name: runner
+        image: ghcr.io/actions/actions-runner:2.338.2
+        command: ["/home/runner/run.sh"]
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: [ALL]
+listenerTemplate:
+  spec:
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1001
+      runAsGroup: 1001
+      seccompProfile: { type: RuntimeDefault }
+    containers:
+      - name: listener
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: [ALL]

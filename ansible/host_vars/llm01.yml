@@ -1,0 +1,19 @@
+---
+llm01_packages:
+  - podman
+  - crun
+  - toolbox
+  - grubby
+  - amd-gpu-firmware
+  - mesa-vulkan-drivers
+  - openssh-server
+  - firewalld
+  - git
+  - python3-pip
+  - rsync
+  - btop
+  - ripgrep
+llm01_kernel_args:
+  - amd_iommu=off
+  - amdgpu.gttsize=126976
+  - ttm.pages_limit=32505856

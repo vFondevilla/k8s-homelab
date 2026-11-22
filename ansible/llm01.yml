@@ -1,0 +1,201 @@
+---
+- name: Reconcile observed llm01 host configuration
+  hosts: llm_servers
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Require the observed operating system and existing account
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.distribution == 'Fedora'
+          - ansible_facts.distribution_major_version == '43'
+          - ansible_user == 'victor'
+
+    - name: Install runtime and administration packages
+      ansible.builtin.dnf:
+        name: '{{ llm01_packages }}'
+        state: present
+
+    - name: Preserve timezone
+      ansible.builtin.file:
+        src: ../usr/share/zoneinfo/Europe/Madrid
+        dest: /etc/localtime
+        state: link
+        force: true
+
+    - name: Keep sleep targets masked
+      ansible.builtin.systemd_service:
+        name: '{{ item }}'
+        masked: true
+      loop: [sleep.target, suspend.target, hibernate.target, hybrid-sleep.target]
+
+    - name: Read boot target
+      ansible.builtin.command: systemctl get-default
+      register: boot_target
+      changed_when: false
+      check_mode: false
+
+    - name: Preserve console boot
+      ansible.builtin.command: systemctl set-default multi-user.target
+      when: boot_target.stdout != 'multi-user.target'
+      changed_when: true
+
+    - name: Read configured kernel arguments
+      ansible.builtin.command: grubby --info=DEFAULT
+      register: kernel_config
+      changed_when: false
+      check_mode: false
+
+    - name: Preserve AMD memory tuning in installed boot entries
+      ansible.builtin.command:
+        argv:
+          - grubby
+          - --update-kernel=ALL
+          - '--args={{ llm01_kernel_args | join(" ") }}'
+      when: llm01_kernel_args | difference(kernel_config.stdout | replace('"', '') | split) | length > 0
+      changed_when: true
+
+    - name: Preserve arguments for future kernel installations
+      ansible.builtin.lineinfile:
+        path: /etc/default/grub
+        regexp: '^GRUB_CMDLINE_LINUX='
+        line: 'GRUB_CMDLINE_LINUX="rhgb quiet {{ llm01_kernel_args | join(" ") }}"'
+
+    - name: Enable SSH and firewall
+      ansible.builtin.systemd_service:
+        name: '{{ item }}'
+        enabled: true
+        state: started
+      loop: [sshd, firewalld]
+
+    - name: Inspect lingering
+      ansible.builtin.stat:
+        path: /var/lib/systemd/linger/victor
+      register: linger
+
+    - name: Enable persistent user services
+      ansible.builtin.command: loginctl enable-linger victor
+      when: not linger.stat.exists
+      changed_when: true
+
+- name: Restore victor user service definitions
+  hosts: llm_servers
+  become: false
+  gather_facts: false
+  environment:
+    XDG_RUNTIME_DIR: /run/user/1000
+  tasks:
+    - name: Create service and model directories
+      ansible.builtin.file:
+        path: '{{ item }}'
+        state: directory
+        mode: '0755'
+      loop:
+        - /home/victor/.config/systemd/user
+        - /home/victor/halogen-models
+
+    - name: Create private Halogen configuration and persistent cache directories
+      ansible.builtin.file:
+        path: '{{ item }}'
+        state: directory
+        mode: '0700'
+      loop:
+        - /home/victor/.config/halogen
+        - /home/victor/halogen-models/.halogen-cache
+
+    - name: Install the interactive inference settings
+      ansible.builtin.copy:
+        src: llm01/server.env
+        dest: /home/victor/.config/halogen/server.env
+        mode: '0600'
+        backup: true
+      notify: Restart Halogen
+
+    - name: Install the Halogen launcher with configuration file support
+      ansible.builtin.copy:
+        src: llm01/run_halogen_server.sh
+        dest: /home/victor/run_halogen_server.sh
+        mode: '0755'
+        backup: true
+        validate: /usr/bin/bash -n %s
+      notify: Restart Halogen
+
+    - name: Install observed service definitions
+      ansible.builtin.copy:
+        src: '{{ item }}'
+        dest: '/home/victor/.config/systemd/user/{{ item | basename }}'
+        mode: '0644'
+      with_fileglob:
+        - files/llm01/user-units/*
+      register: user_units
+
+    - name: Reload changed user definitions
+      ansible.builtin.systemd_service:
+        scope: user
+        daemon_reload: true
+      when: user_units.changed
+
+    - name: Restart Halogen when its definition changes
+      ansible.builtin.debug:
+        msg: Halogen unit changed
+      changed_when: true
+      when: user_units.results | selectattr('changed') | selectattr('dest', 'defined') | selectattr('dest', 'search', 'halogen-server.service$') | list | length > 0
+      notify: Restart Halogen
+
+    - name: Preserve inactive auxiliary services
+      ansible.builtin.systemd_service:
+        name: '{{ item }}'
+        scope: user
+        enabled: false
+        state: stopped
+      loop:
+        - livesync-cli.service
+        - real-estate-monitor-web.service
+
+    - name: Enable Halogen
+      ansible.builtin.systemd_service:
+        name: halogen-server.service
+        scope: user
+        enabled: true
+        state: started
+
+  handlers:
+    - name: Wait until no Halogen requests are running or queued
+      listen: Restart Halogen
+      ansible.builtin.uri:
+        url: http://127.0.0.1:8731/health
+        return_content: true
+        timeout: 10
+      register: llm01_idle
+      until: >-
+        llm01_idle.status == 200
+        and llm01_idle.json.status == 'ok'
+        and not llm01_idle.json.busy
+        and llm01_idle.json.in_flight == 0
+        and llm01_idle.json.queued == 0
+      retries: 60
+      delay: 2
+
+    - name: Restart the Halogen user service
+      listen: Restart Halogen
+      ansible.builtin.systemd_service:
+        name: halogen-server.service
+        scope: user
+        state: restarted
+
+    - name: Wait for the tuned model and API to be ready
+      listen: Restart Halogen
+      ansible.builtin.uri:
+        url: http://127.0.0.1:8731/health
+        return_content: true
+        timeout: 10
+      register: llm01_ready
+      until: >-
+        llm01_ready.status == 200
+        and llm01_ready.json.status == 'ok'
+        and llm01_ready.json.engine.responds
+        and llm01_ready.json.version.match
+        and llm01_ready.json.kv_pool_positions == 262144
+        and llm01_ready.json.reasoning_effort_default == 'medium'
+      retries: 120
+      delay: 2

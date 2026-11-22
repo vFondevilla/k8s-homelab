@@ -32,19 +32,14 @@ tasks:
       - ansible-playbook -i inventory.yml minim4.yml --tags provisioning
 
   gx10:
-    desc: Run gx10 (DGX Spark) playbook (full provisioning)
+    desc: Reconcile the GX10 DS4 inference service
     cmds:
-      - ansible-playbook -i inventory.yml gx10.yml
+      - ansible-playbook -i inventory.yml gx10.yml {{.CLI_ARGS}}
 
-  gx10:provision:
-    desc: Run gx10 playbook provisioning only
+  gx10:check:
+    desc: Preview GX10 DS4 configuration changes
     cmds:
-      - ansible-playbook -i inventory.yml gx10.yml --tags provisioning
-
-  gx10:tailscale:
-    desc: Run only the Tailscale tasks on gx10
-    cmds:
-      - ansible-playbook -i inventory.yml gx10.yml --tags tailscale
+      - ansible-playbook -i inventory.yml gx10.yml --check --diff {{.CLI_ARGS}}
 
   strix-halo:
     desc: Configure a Fedora 43 Strix Halo workstation (no automatic reboot)

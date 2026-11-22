@@ -1,0 +1,13 @@
+[Unit]
+Description=Real Estate Monitor Dashboard
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/victor/real-estate-monitor
+ExecStart=/usr/bin/env -u VIRTUAL_ENV PYTHONPATH=src /home/victor/.local/bin/uv run python -m real_estate_monitor.web --host 0.0.0.0 --port 8765
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

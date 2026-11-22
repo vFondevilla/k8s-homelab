@@ -1,0 +1,17 @@
+[Unit]
+Description=Halogen model server (Podman)
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+WorkingDirectory=%h
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+ExecStart=%h/run_halogen_server.sh start
+ExecStop=%h/run_halogen_server.sh stop
+Restart=always
+RestartSec=15s
+TimeoutStartSec=infinity
+TimeoutStopSec=90s
+
+[Install]
+WantedBy=default.target
