@@ -90,11 +90,15 @@ The manual bootstrap Application is `argocd`.
 
 Its source is `k8s/argocd`.
 
-The active Argo Kustomization includes only the management ApplicationSet.
+The active Argo Kustomization includes the management ApplicationSet directory.
 
-The management ApplicationSet discovers explicit normalized component overlays.
+That directory holds two active ApplicationSets.
 
-It preserves the existing `in-cluster-<component>` Application names.
+`apps-control-plane` discovers explicit normalized component overlays through the `type=control-plane` cluster matrix, including the GitHub ARC management overlay. It preserves the existing `in-cluster-<component>` Application names.
+
+`github-arc-vfondevilla` generates one personal runner-set Application per discovered repository through the Argo CD Plugin generator, which references the `arc-personal-repositories` ConfigMap.
+
+The bootstrap root syncs both ApplicationSets from `k8s/argocd`.
 
 The staged management wrappers are under `argocd/applications/management/`.
 
