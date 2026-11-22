@@ -31,6 +31,7 @@ spec:
                 - path: k8s/apps/platform/external-dns/overlays/management
                 - path: k8s/apps/workloads/home-assistant/overlays/management
                 - path: k8s/apps/platform/loki/overlays/management
+                - path: k8s/apps/platform/opentelemetry-collector/overlays/management
                 - path: k8s/apps/platform/unpoller/overlays/management
                 - path: k8s/apps/workloads/meshcentral/overlays/management
                 - path: k8s/apps/workloads/mosquitto/overlays/management
@@ -57,8 +58,11 @@ spec:
                 - path: k8s/apps/platform/reloader/overlays/management
                 - path: k8s/apps/platform/tailscale-operator/overlays/management
                 - path: k8s/apps/workloads/litellm/overlays/management
+                - path: k8s/apps/workloads/bookorbit/overlays/management
+                - path: k8s/apps/workloads/calibre/overlays/management
                 - path: k8s/apps/workloads/hindsight/overlays/management
                 - path: k8s/apps/workloads/hermes-agent/overlays/management
+                - path: k8s/apps/workloads/codex-agent/overlays/management
                 - path: k8s/apps/platform/multus/overlays/management
   template:
     metadata:
@@ -79,7 +83,7 @@ spec:
           - CreateNamespace=true
           - ServerSideApply=true
   templatePatch: |
-    {{- if eq .path.path "k8s/apps/workloads/hermes-agent/overlays/management" }}
+    {{- if or (eq .path.path "k8s/apps/workloads/hermes-agent/overlays/management") (eq .path.path "k8s/apps/workloads/codex-agent/overlays/management") }}
     spec:
       syncPolicy:
         automated:
